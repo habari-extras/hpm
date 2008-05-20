@@ -20,6 +20,7 @@ class HPM extends Plugin
 		Plugins::act( 'hpm_init' );
 		
 		$this->add_template( 'hpm', dirname(__FILE__) . '/view.php' );
+		$this->add_template( 'hpm_packages', dirname(__FILE__) . '/hpm_packages.php' );
 	}
 
 	public function action_admin_theme_get_hpm( $handler, $theme )
@@ -33,29 +34,10 @@ class HPM extends Plugin
 				Plugins::act( "hpm_$action" );
 			}
 		}
-
-		$packages= DB::get_results('SELECT * FROM ' . DB::table('packages') . '', array(), 'HabariPackage');
-		$out= '';
 		
-		foreach ( $packages as $package) {
-			$name= strval($package->name);
-			$style= ($package->status=='installed')?'background:#cdde87;':'';
-			$out.= "
-			<div class=\"item clear\">
-				<div class=\"head clear\">
-					$name {$package->version}
-				</div>
-				<span class=\"content\"> {$package->description} </span>
-				<ul class=\"dropbutton\">
-					<li><a href='". Site::get_url('admin') ."/hpm?action=install&name={$package->package_name}'>install</a></li>
-					<li><a href='". Site::get_url('admin') ."/hpm?action=uninstall&name={$package->package_name}'>uninstall</a></li>
-				</ul>
-			</div>
-			";
-		}
-
+		$theme->packages= DB::get_results('SELECT * FROM ' . DB::table('packages') . ' LIMIT 20', array(), 'HabariPackage');
 		$theme->types= HabariPackages::list_package_types();
-		$theme->out= $out;
+		$theme->out= $theme->fetch('hpm_packages');
 		$theme->display('hpm');
 		exit;
 	}
@@ -120,6 +102,15 @@ class HPM extends Plugin
 				Utils::debug($e);
 			}
 		}
+	}
+
+	public function action_auth_ajax_hpm_packages( $handler )
+	{
+		$theme= Themes::create( 'admin', 'RawPHPEngine', dirname(__FILE__) .'/' );
+		$search= isset( $handler->handler_vars['search'] ) ? $handler->handler_vars['search'] : '';
+		$where= "(name LIKE CONCAT('%',?,'%') OR description LIKE CONCAT('%',?,'%') OR package_name LIKE CONCAT('%',?,'%'))";
+		$theme->packages= DB::get_results('SELECT * FROM ' . DB::table('packages') . " WHERE $where LIMIT 30", array($search, $search, $search), 'HabariPackage');
+		echo json_encode( array( 'items' =>  $theme->fetch('hpm_packages') ) );
 	}
 	
 	public function action_hpm_init()

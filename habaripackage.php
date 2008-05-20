@@ -97,7 +97,9 @@ class HabariPackage extends QueryRecord
 				$dirs[]= $location;
 			}
 			else {
-				unlink( $location );
+				if ( !@unlink( $location ) ) {
+					Session::error( "could not remove file, $location" );
+				}
 				@rmdir( dirname($location) ); // DANGER WILL ROBINSON!!
 			}
 		}
