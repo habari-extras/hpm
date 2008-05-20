@@ -23,7 +23,7 @@ class HPMHandler extends ActionHandler
 	
 	public function __construct()
 	{
-		$user= User::identify();
+		/*$user= User::identify();
 		if ( !$user ) {
 			Session::add_to_set( 'login', $_SERVER['REQUEST_URI'], 'original' );
 			Utils::redirect( URL::get( 'user', array( 'page' => 'login' ) ) );
@@ -32,7 +32,7 @@ class HPMHandler extends ActionHandler
 		if ( !$user->can( 'admin' ) ) {
 			die( _t( 'Permission denied.' ) );
 		}
-		$user->remember();
+		$user->remember();*/
 		
 		Plugins::act('hpm_init');
 	}

@@ -15,16 +15,17 @@ class HPM extends Plugin
 	
 	public function action_init()
 	{
-		CRewriter::add_rule( 'hpm', '/^hpm\\/?$/i', 'hpm', 'HPMHandler', 'view', 3 );
-		CRewriter::add_rule( 'hpm_type', '%^hpm/type/(?P<type>.+)(?:/page/(?P<page>\\d+))?[/]?$%i', 'hpm/type/{$type}(/page/{$page}/)', 'HPMHandler', 'view', 3 );
-		CRewriter::add_rule( 'hpm_installdb', '%^hpm/installdb[/]?$%i', 'hpm/installdb', 'HPMHandler', 'installdb', 3 );
-		CRewriter::add_rule( 'hpm_install', '%^hpm/install/(?P<name>.+)[/]?$%i', 'hpm/install/{$name}', 'HPMHandler', 'install', 3 );
-		CRewriter::add_rule( 'hpm_remove', '%^hpm/remove/(?P<name>.+)[/]?$%i', 'hpm/remove/{$name}', 'HPMHandler', 'remove', 3 );
-		CRewriter::add_rule( 'hpm_package', '%^hpm/package/(?P<name>.+)[/]?$%i', 'hpm/package/{$name}', 'HPMHandler', 'package', 3 );
-		CRewriter::add_rule( 'hpm_server', '%^packages[/]?$%i', 'packages', 'HabariPackageRepo_Server', 'xmlrpc_call', 3 );
-		
 		include 'hpmhandler.php';
 		include 'habaripackagerepo_server.php';
+		include 'hrewriter.php';
+		
+		HRewriter::add_rule( 'hpm', '/^hpm\\/?$/i', 'hpm', 'HPMHandler', 'view', 3 );
+		HRewriter::add_rule( 'hpm_type', '%^hpm/type/(?P<type>.+)(?:/page/(?P<page>\\d+))?[/]?$%i', 'hpm/type/{$type}(/page/{$page}/)', 'HPMHandler', 'view', 3 );
+		HRewriter::add_rule( 'hpm_installdb', '%^hpm/installdb[/]?$%i', 'hpm/installdb', 'HPMHandler', 'installdb', 3 );
+		HRewriter::add_rule( 'hpm_install', '%^hpm/install/(?P<name>.+)[/]?$%i', 'hpm/install/{$name}', 'HPMHandler', 'install', 3 );
+		HRewriter::add_rule( 'hpm_remove', '%^hpm/remove/(?P<name>.+)[/]?$%i', 'hpm/remove/{$name}', 'HPMHandler', 'remove', 3 );
+		HRewriter::add_rule( 'hpm_package', '%^hpm/package/(?P<name>.+)[/]?$%i', 'hpm/package/{$name}', 'HPMHandler', 'package', 3 );
+		HRewriter::add_rule( 'hpm_server', '%^packages[/]?$%i', 'packages', 'HabariPackageRepo_Server', 'xmlrpc_call', 3 );
 	}
 	
 	public function action_hpm_init()

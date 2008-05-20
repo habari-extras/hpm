@@ -1,6 +1,6 @@
 <?php
 
-class CRewriter
+class HRewriter
 {
 	private $rules = array();
 	private static $instance;
@@ -8,37 +8,20 @@ class CRewriter
 	
 	static public function instance()
 	{
-		if ( ! self::$instance )
-		{
-			self::$instance = new CRewriter;
+		if ( ! self::$instance ) {
+			self::$instance = new HRewriter;
 		}
 		return self::$instance;
 	}
 	
 	public function __construct()
 	{
-		Plugins::register( array('CRewriter', 'filter_rewrite_rules'), 'filter', 'rewrite_rules', 1 );
+		Plugins::register( array('HRewriter', 'filter_rewrite_rules'), 'filter', 'rewrite_rules', 1 );
 	}
 	
 	static public function add_rule( $name, $regex, $build_str, $handler, $action, $priority = 1 )
 	{
-		self::instance()->rules[$name] = array( $regex, $build_str, $handler, $action, $priority );
-	}
-	
-	static public function add_url_rule( $build_str, $handler, $action )
-	{
-		$arr = split( '/', $build_str );
-		
-		$re_arr = preg_replace('/^([^"\']+)$/', "(.+)", $arr);
-		$re_arr = preg_replace('/^["\'](.+)["\']$/', '\\1', $re_arr);
-		
-		$str_arr = preg_replace('/^([^"\']+)$/', '{$\\1}', $arr);
-		$str_arr = preg_replace('/^["\'](.+)["\']$/', '\\1', $str_arr);
-		
-		$regex = '/^' . implode( '\\/', $re_arr ) . '\\/?$/i';
-		$build_str = implode( '/', $str_arr );
-		
-		self::add_rule( $action, $regex, $build_str, $handler, $action, 1 );
+		self::instance()->rules[$name]= array( $regex, $build_str, $handler, $action, $priority );
 	}
 	
 	static public function filter_rewrite_rules( $rules ) {
@@ -53,7 +36,7 @@ class CRewriter
 			$rule->priority = $c_rule[4];
 			$rule->is_active = 1;
 			$rule->is_system = 0;
-			$rule->description= 'Another custom rewrite rule by CRewriter';
+			$rule->description= 'Another custom rewrite rule by HRewriter';
 			$rules[] = $rule;
 		}
 		return $rules;
