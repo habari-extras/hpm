@@ -98,7 +98,7 @@ class HabariPackage extends QueryRecord
 			}
 			else {
 				unlink( $location );
-				@rmdir( basename($location) ); // DANGER WILL ROBINSON!!
+				@rmdir( dirname($location) ); // DANGER WILL ROBINSON!!
 			}
 		}
 		foreach ( $dirs as $dir ) {

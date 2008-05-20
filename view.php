@@ -1,31 +1,17 @@
-<div class="container">
-	<hr>
-	<?php if(Session::has_messages()) {Session::messages_out();} ?>
+<?php include HABARI_PATH . '/system/admin/header.php'; ?>
+
+<div class="container navigator">
+	<span class="search pct75"><input type="search" placeholder="Type and wait to search for any entry component" autosave="habaricontent" results="10" value=""></span>
+	<span class="pct25"><a href="<?php echo Site::get_url('habari'); ?>/admin/hpm?action=update">Update Package List</a></span>
+
+</div>
+
+<div class="container manage">
 	
-	<div>
-	
-		<div style="width:30%; float:left; border:1px solid #bbb;">
-			<b>Package Type</b>
-			<ul>
-			<?php foreach ( $types as $type ) {
-			
-			echo "<li><a href='" . Site::get_url('habari') . "/hpm/type/$type'>$type</a></li>";
-			
-			} ?>
-			</ul>
-			
-			<b>More</b>
-			<ul>
-				<li><a href="<?php echo Site::get_url('habari'); ?>/hpm?update_test=1">Update Package List</a></li>
-				<li><a href="<?php echo URL::get('hpm_installdb'); ?>">Re-Install Database</a></li>
-			</ul>
-		</div>
-		
-		<div style="width:60%; float:right;">
+	<div class="pct100 clear">
 		<?php echo $out; ?>
-		</div>
-		
-		<br style="clear:both;" />
 	</div>
 	
 </div>
+
+<?php include HABARI_PATH . '/system/admin/footer.php'; ?>

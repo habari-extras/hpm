@@ -21,7 +21,7 @@ class PackageArchive
 	
 	public function __construct( $package_name, $url )
 	{
-		$this->filename= HPMHandler::$PACKAGES_PATH . '/' . $package_name . '.' . time() . '.hpm';
+		$this->filename= HPM::$PACKAGES_PATH . '/' . $package_name . '.' . time() . '.hpm';
 		$this->url= $url;
 	}
 	

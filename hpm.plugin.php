@@ -2,6 +2,8 @@
 
 class HPM extends Plugin
 {
+	static $PACKAGES_PATH;
+	const VERSION= '0.1';
 	
 	function info()
 	{
@@ -15,17 +17,109 @@ class HPM extends Plugin
 	
 	public function action_init()
 	{
-		include 'hpmhandler.php';
-		include 'habaripackagerepo_server.php';
-		include 'hrewriter.php';
+		Plugins::act( 'hpm_init' );
 		
-		HRewriter::add_rule( 'hpm', '/^hpm\\/?$/i', 'hpm', 'HPMHandler', 'view', 3 );
-		HRewriter::add_rule( 'hpm_type', '%^hpm/type/(?P<type>.+)(?:/page/(?P<page>\\d+))?[/]?$%i', 'hpm/type/{$type}(/page/{$page}/)', 'HPMHandler', 'view', 3 );
-		HRewriter::add_rule( 'hpm_installdb', '%^hpm/installdb[/]?$%i', 'hpm/installdb', 'HPMHandler', 'installdb', 3 );
-		HRewriter::add_rule( 'hpm_install', '%^hpm/install/(?P<name>.+)[/]?$%i', 'hpm/install/{$name}', 'HPMHandler', 'install', 3 );
-		HRewriter::add_rule( 'hpm_remove', '%^hpm/remove/(?P<name>.+)[/]?$%i', 'hpm/remove/{$name}', 'HPMHandler', 'remove', 3 );
-		HRewriter::add_rule( 'hpm_package', '%^hpm/package/(?P<name>.+)[/]?$%i', 'hpm/package/{$name}', 'HPMHandler', 'package', 3 );
-		HRewriter::add_rule( 'hpm_server', '%^packages[/]?$%i', 'packages', 'HabariPackageRepo_Server', 'xmlrpc_call', 3 );
+		$this->add_template( 'hpm', dirname(__FILE__) . '/view.php' );
+	}
+
+	public function action_admin_theme_get_hpm( $handler, $theme )
+	{
+		if ( isset( $handler->handler_vars['action'] ) ) {
+			$action= $handler->handler_vars['action'];
+			if ( method_exists( $this, "act_$action" ) ) {
+				$this->{"act_$action"}( $handler, $theme );
+			}
+			else {
+				Plugins::act( "hpm_$action" );
+			}
+		}
+
+		$packages= DB::get_results('SELECT * FROM ' . DB::table('packages') . '', array(), 'HabariPackage');
+		$out= '';
+		
+		foreach ( $packages as $package) {
+			$name= strval($package->name);
+			$style= ($package->status=='installed')?'background:#cdde87;':'';
+			$out.= "
+			<div class=\"item clear\">
+				<div class=\"head clear\">
+					$name {$package->version}
+				</div>
+				<span class=\"content\"> {$package->description} </span>
+				<ul class=\"dropbutton\">
+					<li><a href='". Site::get_url('admin') ."/hpm?action=install&name={$package->package_name}'>install</a></li>
+					<li><a href='". Site::get_url('admin') ."/hpm?action=uninstall&name={$package->package_name}'>uninstall</a></li>
+				</ul>
+			</div>
+			";
+		}
+
+		$theme->types= HabariPackages::list_package_types();
+		$theme->out= $out;
+		$theme->display('hpm');
+		exit;
+	}
+
+	public function act_update( $handler, $theme )
+	{
+		foreach ( HabariPackageRepo::repos() as $repo ) {
+			try {
+				$repo->update_packages();
+				Session::notice( $repo->name . ' Repository is now up to date.<br>' );
+			}
+			catch (Exception $e) {
+				Session::error( $repo->name . ' Repository could not be updated. "' . $e->getMessage() . '"<br>' );
+				if ( DEBUG ) {
+					Session::notice( "<br />Generating debug info ...\n" );
+					Utils::debug($e);
+				}
+			}
+		}
+	}
+
+	public function act_install( $handler, $theme )
+	{
+		self::$PACKAGES_PATH= HABARI_PATH . '/user/packages';
+		
+		if ( ! is_dir(self::$PACKAGES_PATH) ) {
+			mkdir( self::$PACKAGES_PATH, 0777, true );
+		}
+		
+		try {
+			$package= HabariPackages::install( $handler->handler_vars['name'] );
+			Session::notice( "{$package->name} {$package->version} was installed." );
+			if ( $package->readme_doc ) {
+				$out= '<h3>Readme Instructions</h3><pre style="overflow:auto; border:1px dotted #ccc;">' . $package->readme_doc
+					. '</pre><div><a href="/admin/hpm">Return to Packages List</a></div>';
+				$theme->out= $out;
+				$theme->display('hpm');
+				exit;
+			}
+		}
+		catch (Exception $e) {
+			Session::error( 'Could not complete install: '.  $e->getMessage() );
+			if ( DEBUG ) {
+				Session::notice( "<br />Generating debug info ...\n" );
+				Utils::debug($e);
+			}
+		}
+	}
+
+	public function act_uninstall( $handler, $theme )
+	{
+		self::$PACKAGES_PATH= HABARI_PATH . '/user/packages';
+		
+		try {
+			$package= HabariPackages::remove( $handler->handler_vars['name'] );
+			Session::notice( "{$package->name} {$package->version} was uninstalled." );
+		}
+		catch (Exception $e) {
+			Session::error( 'Could not complete uninstall: '.  $e->getMessage() );
+			if ( DEBUG ) {
+				Session::notice( "<br />Generating debug info ...\n" );
+				Utils::debug($e);
+			}
+		}
 	}
 	
 	public function action_hpm_init()
@@ -41,6 +135,11 @@ class HPM extends Plugin
 		include 'tarreader.php';
 		include 'zipreader.php';
 		include 'habaripackagerepo.php';
+		include 'habaripackagerepo_server.php';
+		include 'hrewriter.php';
+		include 'hpmhandler.php';
+		
+		HRewriter::add_rule( 'hpm_server', '%^packages[/]?$%i', 'packages', 'HabariPackageRepo_Server', 'xmlrpc_call', 3 );
 		
 		PackageArchive::register_archive_reader( 'application/x-zip', 'ZipReader' );
 		PackageArchive::register_archive_reader( 'application/zip', 'ZipReader' );
@@ -48,35 +147,6 @@ class HPM extends Plugin
 		PackageArchive::register_archive_reader( 'application/tar', 'TarReader' );
 		PackageArchive::register_archive_reader( 'application/x-gzip', 'TarReader' );
 		PackageArchive::register_archive_reader( 'text/plain', 'TxtReader' );
-	}
-	
-	public function filter_rewrite_rules( $rules )
-	{
-		/*$rules[] = new RewriteRule(array(
-			'name' => 'hpm',
-			'parse_regex' => '%^hpm/(?P<action>.+)?[/]?(?P<name>.+)?[/]?$%i',
-			'build_str' => 'hpm/({$action}/)({$name})',
-			'handler' => 'HPMHandler',
-			'action' => '{$action}',
-			'priority' => 2,
-			'rule_class' => RewriteRule::RULE_PLUGIN,
-			'is_active' => 1,
-			'description' => 'Rewrite HPM Packages.'
-		));
-		
-		$rules[] = new RewriteRule(array(
-			'name' => 'hpm_server',
-			'parse_regex' => '%^packages[/]?$%i',
-			'build_str' => 'packages',
-			'handler' => 'HabariPackageRepo_Server',
-			'action' => 'xmlrpc_call',
-			'priority' => 2,
-			'rule_class' => RewriteRule::RULE_PLUGIN,
-			'is_active' => 1,
-			'description' => 'Rewrite for HPM Server.'
-		));*/
-		
-		return $rules;
 	}
 }
 

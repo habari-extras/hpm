@@ -122,6 +122,61 @@ class HPMHandler extends ActionHandler
 		$this->theme->mainmenu= '';
 		$this->theme->display('view');
 	}
+
+	public function action_admin_theme_get_hpm( $handler, $theme )
+	{
+		if ( array_key_exists( 'update_test', $_GET ) ) {
+			foreach ( HabariPackageRepo::repos() as $repo ) {
+				try {
+					$repo->update_packages();
+					Session::notice( $repo->name . ' Repository is now up to date.<br>');
+				}
+				catch (Exception $e) {
+					Session::error( $repo->name . ' Repository could not be updated. "' . $e->getMessage() . '"<br>');
+					if ( DEBUG ) {
+						$out= "<br />Generating debug info ...\n";
+						Utils::debug($e);
+					}
+				}
+			}
+		}
+
+		if ( array_key_exists('type', $this->handler_vars) ) {
+			$packages= DB::get_results('SELECT * FROM ' . DB::table('packages') . '', array(), 'HabariPackage');
+			$packagess= array();
+			
+			foreach ( $packages as $package) {
+				$packagess[$package->type][]= $package;
+			}
+			$types= array_flip(HabariPackages::list_package_types());
+			$type= $types[$this->handler_vars['type']];
+			
+			$out= '<h3>'. $this->handler_vars['type'] .'</h3>
+			<table>';
+			
+			if ( array_key_exists($type, $packagess) ) {
+			foreach ( $packagess[$type] as $package) {
+				$name= strval($package->name);
+				$style= ($package->status=='installed')?'background:#cdde87;':'';
+				$out.= "
+				<tr style=\"$style\">
+					<td>$name</td>
+					<td>{$package->version}</td>
+					<td><a href='".URL::get('hpm_install',array('name'=>strval($package->package_name)))."'>install</a></td>
+					<td><a href='".URL::get('hpm_package',array('name'=>strval($package->package_name)))."'>more info</a></td>
+					<td><a href='".URL::get('hpm_remove',array('name'=>strval($package->package_name)))."'>remove</a></td>
+				</tr>
+				";
+			}
+			}
+			$out.= '</table>';
+		}
+		else {
+			$out= '<p>Choose package type on the side.</p>';
+		}
+		$this->theme->out= $out;
+		$this->theme->display('hpm');
+	}
 	
 	public function act_view()
 	{
@@ -180,7 +235,6 @@ class HPMHandler extends ActionHandler
 		
 		
 		$this->theme->types= HabariPackages::list_package_types();
-		$this->theme->mainmenu= '';
 		$this->theme->display('view');
 	}
 	
