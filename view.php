@@ -6,7 +6,7 @@
 
 </div>
 
-<div class="container manage entries">
+<div class="container manage entries plugins">
 	<?php echo $out; ?>
 
 	

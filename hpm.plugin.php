@@ -23,6 +23,92 @@ class HPM extends Plugin
 		$this->add_template( 'hpm_packages', dirname(__FILE__) . '/hpm_packages.php' );
 	}
 
+	public function action_plugin_activation( $file )
+	{
+		if ( $file == str_replace( '\\','/', $this->get_file() ) ) {
+			DB::register_table('package_repos');
+			DB::register_table('packages');
+			switch( DB::get_driver_name() ) {
+				case 'sqlite':
+					$schema= 'CREATE TABLE ' . DB::table('packages') . ' (
+						id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+						name VARCHAR(255) NOT NULL,
+						package_name VARCHAR(255) NOT NULL,
+						version VARCHAR(255) NOT NULL,
+						description LONGTEXT ,
+						author VARCHAR(255) ,
+						author_url VARCHAR(255) ,
+						max_habari_version VARCHAR(255) ,
+						min_habari_version VARCHAR(255) ,
+						archive_md5 VARCHAR(255) ,
+						archive_url VARCHAR(255) ,
+						archive LONGTEXT ,
+						type SMALLINT UNSIGNED ,
+						status VARCHAR(255) ,
+						depends VARCHAR(255) ,
+						provides VARCHAR(255) ,
+						signature VARCHAR(255) ,
+						install_profile LONGTEXT
+					);
+					CREATE TABLE  ' . DB::table('package_repos') . ' (
+						id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+						name VARCHAR(255) NOT NULL,
+						url VARCHAR(255) NOT NULL,
+						browser_url VARCHAR(255) NOT NULL,
+						description TEXT NOT NULL,
+						signature VARCHAR(255) NOT NULL,
+						version VARCHAR(255) NOT NULL,
+						owner VARCHAR(255) NOT NULL
+					);';
+				break;
+				
+				default:
+				case 'mysql':
+					$schema= 'CREATE TABLE ' . DB::table('packages') . ' (
+						id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+						name VARCHAR(255) NOT NULL,
+						package_name VARCHAR(255) NOT NULL,
+						version VARCHAR(255) NOT NULL,
+						description LONGTEXT ,
+						author VARCHAR(255) ,
+						author_url VARCHAR(255) ,
+						max_habari_version VARCHAR(255) ,
+						min_habari_version VARCHAR(255) ,
+						archive_md5 VARCHAR(255) ,
+						archive_url VARCHAR(255) ,
+						archive LONGTEXT ,
+						type SMALLINT UNSIGNED ,
+						status VARCHAR(255) ,
+						depends VARCHAR(255) ,
+						provides VARCHAR(255) ,
+						signature VARCHAR(255) ,
+						install_profile LONGTEXT,
+						PRIMARY KEY (id)
+					);
+					CREATE TABLE  ' . DB::table('package_repos') . ' (
+						id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+						name VARCHAR(255) NOT NULL,
+						url VARCHAR(255) NOT NULL,
+						browser_url VARCHAR(255) NOT NULL,
+						description TEXT NOT NULL,
+						signature VARCHAR(255) NOT NULL,
+						version VARCHAR(255) NOT NULL,
+						owner VARCHAR(255) NOT NULL,
+						PRIMARY KEY (id)
+					);';
+				break;
+			}
+			if ( DB::dbdelta( $schema ) ) {
+				Session::notice( 'Created the HPM database tables.' );
+			}
+			else {
+				Session::error( 'Could not create HPM database tables.' );
+			}
+			// insert default repo
+			DB::query("INSERT INTO " . DB::table('package_repos') . " (name, url, browser_url, description, owner, signature, version) VALUES('Wicket', 'http://mattread.com/packages/', 'null', 'A package repo for testing purposes only!', 'Matt Read', 'Awsom3', '1');");
+		}
+	}
+
 	public function action_admin_theme_get_hpm( $handler, $theme )
 	{
 		if ( isset( $handler->handler_vars['action'] ) ) {
@@ -71,7 +157,7 @@ class HPM extends Plugin
 			$package= HabariPackages::install( $handler->handler_vars['name'] );
 			Session::notice( "{$package->name} {$package->version} was installed." );
 			if ( $package->readme_doc ) {
-				$out= '<h3>Readme Instructions</h3><pre style="overflow:auto; border:1px dotted #ccc;">' . $package->readme_doc
+				$out= '<h2>'. $package->name .'</h2></h2><h3>Readme Instructions</h3><pre style="overflow:auto; border:1px dotted #ccc;">' . $package->readme_doc
 					. '</pre><div><a href="/admin/hpm">Return to Packages List</a></div>';
 				$theme->out= $out;
 				$theme->display('hpm');
