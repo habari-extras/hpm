@@ -109,6 +109,12 @@ class HPM extends Plugin
 		}
 	}
 
+	public function filter_adminhandler_post_loadplugins_main_menu( $menus )
+	{
+		$menus['hpm'] =  array( 'url' => URL::get( 'admin', 'page=hpm'), 'title' => _t('Habari Package Manager'), 'text' => _t('HPM'), 'selected' => false, 'hotkey' => 'H' );
+		return $menus;
+	}
+
 	public function action_admin_theme_get_hpm( $handler, $theme )
 	{
 		if ( isset( $handler->handler_vars['action'] ) ) {
@@ -119,6 +125,10 @@ class HPM extends Plugin
 			else {
 				Plugins::act( "hpm_$action" );
 			}
+		}
+
+		if ( HabariPackageRepo::require_updates() ) {
+			Session::notice( "The packages list is out of date." );
 		}
 		
 		$theme->packages= DB::get_results('SELECT * FROM ' . DB::table('packages') . ' LIMIT 20', array(), 'HabariPackage');

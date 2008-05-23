@@ -215,7 +215,7 @@ class HabariPackageRepo_Server extends XMLRPCServer
 		return $xml->asXml();
 	}
 	
-	public function getInfo()
+	public function server_getInfo()
 	{
 		$xml= new SimpleXMLElement('<server/>');
 		$info= $xml->addChild('info');

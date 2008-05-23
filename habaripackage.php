@@ -71,11 +71,25 @@ class HabariPackage extends QueryRecord
 			$this->archive->fetch();
 			$this->archive->set_archive_reader();
 		}
-		$this->verify_md5sum();
+		if ( $this->archive->md5 != $this->archive_md5 ) {
+			throw new Exception( "Archive MD5 ({$this->archive->md5}) at {$this->archive_url} does
+				 not match the package MD5 ({$this->archive_md5}). Archive may be corrupt." );
+		}
+	}
+	
+	public function is_compatible()
+	{
+		if ( version_compare( Version::get_habariversion(), $this->max_habari_version, '<=' ) || version_compare( Version::get_habariversion(), $this->max_habari_version, '>=' ) ) {
+			return true;
+		}
+		return false;
 	}
 	
 	public function install()
 	{
+		if ( ! $this->is_compatible() ) {
+			throw new Exception( "{$this->name} {$this->version} is not compatible with Habari " . Version::get_habariversion() );
+		}
 		$this->get_archive();
 		$this->build_install_profile();
 		$this->check_existing_files();
@@ -92,7 +106,7 @@ class HabariPackage extends QueryRecord
 		$this->install_profile= unserialize( $this->install_profile );
 		$dirs= array();
 		foreach ( array_reverse($this->install_profile) as $file => $location ) {
-			$location= HABARI_PATH . '/' . $location;
+			$location= HABARI_PATH . '/' . ltrim( $location, '/\\' );
 			if ( is_dir($location) ) {
 				$dirs[]= $location;
 			}
@@ -109,14 +123,6 @@ class HabariPackage extends QueryRecord
 		$this->install_profile= '';
 		$this->status= '';
 		$this->update();
-	}
-	
-	private function verify_md5sum()
-	{
-		if ( $this->archive->md5 != $this->archive_md5 ) {
-			throw new Exception( "Archive MD5 ({$this->archive->md5}) at {$this->archive_url} does
-				 not match the package MD5 ({$this->archive_md5}). Archive may be corrupt." );
-		}
 	}
 	
 	private function check_existing_files()
@@ -151,7 +157,6 @@ class HabariPackage extends QueryRecord
 		foreach ( $this->archive->get_file_list() as $file ) {
 			if ( basename($file) == 'package.xml' ) {
 				$this->info= simplexml_load_string( $this->archive->read_file($file) );
-				continue;
 			}
 			if ( basename($file) == 'README' ) {
 				$this->readme_doc=  $this->archive->read_file($file);

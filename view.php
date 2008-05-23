@@ -2,7 +2,7 @@
 
 <div class="container navigator">
 	<span class="search pct75"><input type="search" placeholder="Type and wait to search for any entry component" autosave="habaricontent" results="10" value=""></span>
-	<div class="pct25 item"><ul class="dropbutton<?php echo isset($need_update)?' alert':''; ?>"><li><a href="<?php echo Site::get_url('habari'); ?>/admin/hpm?action=update">Update Package List</a></li></ul></div>
+	<div class="pct25 item"><ul class="dropbutton<?php echo ( HabariPackageRepo::require_updates() )?' alert':''; ?>"><li><a href="<?php echo Site::get_url('habari'); ?>/admin/hpm?action=update">Update Package List</a></li></ul></div>
 
 </div>
 

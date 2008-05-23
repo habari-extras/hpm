@@ -88,6 +88,16 @@ class HabariPackageRepo extends QueryRecord
 		$repos= DB::get_results( 'SELECT * FROM ' . DB::table('package_repos') . '', array(), 'HabariPackageRepo' );
 		return $repos;
 	}
+
+	public static function require_updates()
+	{
+		foreach( self::repos() as $repo ) {
+			if ( $repo->version < ( time() - 259200 ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
 	
 	public function get_server_info()
 	{
