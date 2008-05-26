@@ -128,7 +128,7 @@ class HabariPackageRepo extends QueryRecord
 			$package= array_map( 'strval', (array) $package );
 			unset( $package['signaure'] ); // compat fix
 			//Utils::debug( (array) $package );
-			DB::update( DB::table('packages'), $package, array('package_name'=>$package['package_name']) );
+			DB::update( DB::table('packages'), $package, array('guid'=>$package['guid']) );
 		}
 		
 		$this->version= $response->version;

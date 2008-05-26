@@ -28,12 +28,14 @@ class HPM extends Plugin
 		if ( $file == str_replace( '\\','/', $this->get_file() ) ) {
 			DB::register_table('package_repos');
 			DB::register_table('packages');
+			DB::query("DROP TABLE " . DB::table('package_repos') );
+			DB::query("DROP TABLE " . DB::table('packages') );
 			switch( DB::get_driver_name() ) {
 				case 'sqlite':
 					$schema= 'CREATE TABLE ' . DB::table('packages') . ' (
 						id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 						name VARCHAR(255) NOT NULL,
-						package_name VARCHAR(255) NOT NULL,
+						guid VARCHAR(255) NOT NULL,
 						version VARCHAR(255) NOT NULL,
 						description LONGTEXT ,
 						author VARCHAR(255) ,
@@ -43,10 +45,11 @@ class HPM extends Plugin
 						archive_md5 VARCHAR(255) ,
 						archive_url VARCHAR(255) ,
 						archive LONGTEXT ,
-						type SMALLINT UNSIGNED ,
+						type VARCHAR(255) ,
 						status VARCHAR(255) ,
-						depends VARCHAR(255) ,
+						requires VARCHAR(255) ,
 						provides VARCHAR(255) ,
+						recomends VARCHAR(255) ,
 						signature VARCHAR(255) ,
 						install_profile LONGTEXT
 					);
@@ -67,7 +70,7 @@ class HPM extends Plugin
 					$schema= 'CREATE TABLE ' . DB::table('packages') . ' (
 						id INT UNSIGNED NOT NULL AUTO_INCREMENT,
 						name VARCHAR(255) NOT NULL,
-						package_name VARCHAR(255) NOT NULL,
+						guid VARCHAR(255) NOT NULL,
 						version VARCHAR(255) NOT NULL,
 						description LONGTEXT ,
 						author VARCHAR(255) ,
@@ -77,10 +80,11 @@ class HPM extends Plugin
 						archive_md5 VARCHAR(255) ,
 						archive_url VARCHAR(255) ,
 						archive LONGTEXT ,
-						type SMALLINT UNSIGNED ,
+						type VARCHAR(255) ,
 						status VARCHAR(255) ,
-						depends VARCHAR(255) ,
+						requires VARCHAR(255) ,
 						provides VARCHAR(255) ,
+						recomends VARCHAR(255) ,
 						signature VARCHAR(255) ,
 						install_profile LONGTEXT,
 						PRIMARY KEY (id)
@@ -99,11 +103,9 @@ class HPM extends Plugin
 				break;
 			}
 			if ( DB::dbdelta( $schema ) ) {
-				Session::notice( 'Created the HPM database tables.' );
+				Session::notice( 'Updated the HPM database tables.' );
 			}
-			else {
-				Session::error( 'Could not create HPM database tables.' );
-			}
+			
 			// insert default repo
 			DB::query("INSERT INTO " . DB::table('package_repos') . " (name, url, browser_url, description, owner, signature, version) VALUES('Wicket', 'http://mattread.com/packages/', 'null', 'A package repo for testing purposes only!', 'Matt Read', 'Awsom3', '1');");
 		}
@@ -164,7 +166,7 @@ class HPM extends Plugin
 		}
 		
 		try {
-			$package= HabariPackages::install( $handler->handler_vars['name'] );
+			$package= HabariPackages::install( $handler->handler_vars['guid'] );
 			Session::notice( "{$package->name} {$package->version} was installed." );
 			if ( $package->readme_doc ) {
 				$out= '<h2>'. $package->name .'</h2></h2><h3>Readme Instructions</h3><pre style="overflow:auto; border:1px dotted #ccc;">' . $package->readme_doc
@@ -188,7 +190,7 @@ class HPM extends Plugin
 		self::$PACKAGES_PATH= HABARI_PATH . '/user/packages';
 		
 		try {
-			$package= HabariPackages::remove( $handler->handler_vars['name'] );
+			$package= HabariPackages::remove( $handler->handler_vars['guid'] );
 			Session::notice( "{$package->name} {$package->version} was uninstalled." );
 		}
 		catch (Exception $e) {
@@ -204,8 +206,8 @@ class HPM extends Plugin
 	{
 		$theme= Themes::create( 'admin', 'RawPHPEngine', dirname(__FILE__) .'/' );
 		$search= isset( $handler->handler_vars['search'] ) ? $handler->handler_vars['search'] : '';
-		$where= "(name LIKE CONCAT('%',?,'%') OR description LIKE CONCAT('%',?,'%') OR package_name LIKE CONCAT('%',?,'%'))";
-		$theme->packages= DB::get_results('SELECT * FROM ' . DB::table('packages') . " WHERE $where LIMIT 30", array($search, $search, $search), 'HabariPackage');
+		$where= "(name LIKE CONCAT('%',?,'%') OR description LIKE CONCAT('%',?,'%'))";
+		$theme->packages= DB::get_results('SELECT * FROM ' . DB::table('packages') . " WHERE $where LIMIT 30", array($search, $search), 'HabariPackage');
 		echo json_encode( array( 'items' =>  $theme->fetch('hpm_packages') ) );
 	}
 	
@@ -222,11 +224,6 @@ class HPM extends Plugin
 		include 'tarreader.php';
 		include 'zipreader.php';
 		include 'habaripackagerepo.php';
-		include 'habaripackagerepo_server.php';
-		include 'hrewriter.php';
-		include 'hpmhandler.php';
-		
-		HRewriter::add_rule( 'hpm_server', '%^packages[/]?$%i', 'packages', 'HabariPackageRepo_Server', 'xmlrpc_call', 3 );
 		
 		PackageArchive::register_archive_reader( 'application/x-zip', 'ZipReader' );
 		PackageArchive::register_archive_reader( 'application/zip', 'ZipReader' );

@@ -1,5 +1,5 @@
 <?php foreach ( $packages as $package) : ?>
-		<div class="item clear" id="package_<?php echo $package->package_name; ?>">
+		<div class="item clear" id="package_<?php echo $package->id; ?>">
 			<div class="head clear">
 				<?php echo "{$package->name} {$package->version}"; ?>
 			</div>
@@ -12,11 +12,11 @@
 				<?php if ( !$package->is_compatible() ) : ?>
 				<li>not compatible!</li>
 				<?php elseif ( $package->status == 'installed' ) : ?>
-				<li><a href=" <?php Site::out_url('admin') ?>/hpm?action=uninstall&name=<?php echo $package->package_name ?>">uninstall</a></li>
+				<li><a href=" <?php Site::out_url('admin') ?>/hpm?action=uninstall&guid=<?php echo $package->guid ?>">uninstall</a></li>
 				<?php elseif ( $package->status == 'upgrade' ) : ?>
-				<li><a href=" <?php Site::out_url('admin') ?>/hpm?action=upgrade&name=<?php echo $package->package_name ?>">upgrade</a></li>
+				<li><a href=" <?php Site::out_url('admin') ?>/hpm?action=upgrade&guid=<?php echo $package->guid ?>">upgrade</a></li>
 				<?php else : ?>
-				<li><a href=" <?php Site::out_url('admin') ?>/hpm?action=install&name=<?php echo $package->package_name ?>">install</a></li>
+				<li><a href=" <?php Site::out_url('admin') ?>/hpm?action=install&guid=<?php echo $package->guid ?>">install</a></li>
 				<?php endif; ?>
 			</ul>
 		</div>

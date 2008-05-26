@@ -11,9 +11,6 @@ packages will depend on "hooks" and satisfy "hooks"
 
 
 feilds needed:
-	package_guid ? do we need a unique id for packages?
-		- right now we use package_name
-	
 	category
 		- or maybe tag?
 */
@@ -27,7 +24,7 @@ class HabariPackage extends QueryRecord
 		return array(
 			'id' => 0,
 			'name' => '',
-			'package_name' => '',
+			'guid' => '',
 			'version' => '',
 			'description' => '',
 			'author' => '',
@@ -38,18 +35,19 @@ class HabariPackage extends QueryRecord
 			'archive_url' => '',
 			'type' => '',
 			'status' => '',
-			'depends' => '',
+			'requires' => '',
 			'provides' => '',
+			'recomends' => '',
 			'signature' => '',
 			'archive' => '',
 			'install_profile' => ''
 		);
 	}
 	
-	public static function get( $package_name )
+	public static function get( $guid )
 	{
-		$package= DB::get_row( 'SELECT * FROM ' . DB::table('packages') . ' WHERE package_name = ?',
-			array( $package_name ), 'HabariPackage' );
+		$package= DB::get_row( 'SELECT * FROM ' . DB::table('packages') . ' WHERE guid = ?',
+			array( $guid ), 'HabariPackage' );
 		return $package;
 	}
 	
@@ -67,7 +65,7 @@ class HabariPackage extends QueryRecord
 	private function get_archive()
 	{
 		if ( ! $this->archive = @ unserialize($this->archive) ) {
-			$this->archive= new PackageArchive( $this->package_name, $this->archive_url );
+			$this->archive= new PackageArchive( $this->guid, $this->archive_url );
 			$this->archive->fetch();
 			$this->archive->set_archive_reader();
 		}
@@ -164,6 +162,9 @@ class HabariPackage extends QueryRecord
 			if ( strpos( $file, '__MACOSX' ) === 0 ) {
 				// stoopid mac users!
 				continue;
+			}
+			if ( strpos( basename($file), 'plugin.' ) === 0 ) {
+				$plugin_file= $file;
 			}
 			
 			$install_profile[$file]= HabariPackages::type_location( $this->type ) . '/' . $file;
