@@ -77,7 +77,7 @@ class HabariPackage extends QueryRecord
 	
 	public function is_compatible()
 	{
-		if ( version_compare( Version::get_habariversion(), $this->max_habari_version, '<=' ) || version_compare( Version::get_habariversion(), $this->max_habari_version, '>=' ) ) {
+		if ( version_compare( Version::get_habariversion(), $this->max_habari_version, '<=' ) && version_compare( Version::get_habariversion(), $this->min_habari_version, '>=' ) ) {
 			return true;
 		}
 		return false;

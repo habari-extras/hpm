@@ -10,7 +10,7 @@ class HPM extends Plugin
 		return array (
 			'name' => 'HPM',
 			'version' => '0.1',
-			'author' => 'Drunken Monkey Labs',
+			'author' => 'Habari Community',
 			'license' => 'Apache License 2.0',
 		);
 	}
