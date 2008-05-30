@@ -1,6 +1,6 @@
 <?php
 
-// I really should just rewrite dunzip2!
+include 'dunzip2.php';
 
 class ZipReader extends dUnzip2 implements ArchiveReader
 {

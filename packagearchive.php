@@ -16,24 +16,9 @@ class PackageArchive
 	private $reader;
 	private static $archive_readers= array();
 	
-	private $content_type;
-	private $filename;
-	
-	public function __construct( $package_name, $url )
+	public function __construct( $url )
 	{
-		$this->filename= HPM::$PACKAGES_PATH . '/' . $package_name . '.' . time() . '.hpm';
 		$this->url= $url;
-	}
-	
-	public function __sleep()
-	{
-		return array( 'url', 'content_type', 'filename' );
-	}
-	
-	public function __wakeup()
-	{
-		$this->set_archive_reader();
-		$this->md5= md5_file( $this->filename );
 	}
 	
 	public function fetch()
@@ -55,60 +40,32 @@ class PackageArchive
 		
 		/* Get the MIME type and character set */
 		preg_match( '@Content-Type:\s+([\w/\-+]+)(;\s+charset=(\S+))?@i', $content_type, $matches );
-		if ( isset( $matches[1] ) )
+		if ( isset( $matches[1] ) ) {
 			$mime = $matches[1];
-		if ( isset( $matches[3] ) )
-			$charset = $matches[3];
+		}
+		else {
+			throw new Exception( 'Could not determine archive type' );
+		}
 		
-		$this->content_type= $mime;
-		file_put_contents( $this->filename, $remote_archive->get_response_body() );
-		$this->md5= md5_file( $this->filename );
+		$file = HabariPackages::tempnam();
+		if ( ! file_put_contents( $file, $remote_archive->get_response_body(), LOCK_EX ) ) {
+			throw new Exception( 'Please make the directory ' . dirname( $file ) . ' writeable by the server' );
+		}
+		
+		$this->md5 = md5_file( $file );
+		$this->set_archive_reader( $mime, $file );
 		
 		unset( $remote_archive );
 	}
 	
-	public function set_archive_reader( $archive_reader= null )
+	public function set_archive_reader( $mime, $file )
 	{
-		if ( $archive_reader ) {
-			$this->reader= new $archive_reader( $this->filename );
-		}
-		elseif ( array_key_exists( $this->content_type, self::$archive_readers ) ) {
-			$this->reader= new self::$archive_readers[$this->content_type]( $this->filename );
+		if ( isset( self::$archive_readers[$mime] ) ) {
+			$this->reader= new self::$archive_readers[$mime]( $file );
 		}
 		else {
-			throw new Exception( "No Archive reader available for type {$this->content_type}" );
+			throw new Exception( "No Archive reader available for type {$mime}" );
 		}
-	}
-	
-	private function get_content_type( $headers )
-	{
-		if ( preg_match('/content-type: (.*)/si', $headers, $matches) ) {
-			$this->content_type= $matches[1];
-			return true;
-		}
-		
-		if ( preg_match('/content-disposition: (.*)/si', $headers, $matches) ) {
-			if ( preg_match('/filename=(.*)/si', $matches[1], $match) ) {
-					$this->content_type= $this->match_filename( $match[1] );
-			}
-		}
-	}
-	
-	private function match_filename( $file_name ) {
-		$mimes_filetype= array (
-		'tar|tar.gz|tgz' => 'application/x-tar',
-		'zip' => 'application/zip',
-		'gz|gzip' => 'application/x-gzip',
-		'php' => 'text/php',
-		'txt' => 'text/plain');
-		
-		foreach ($exts as $ext_preg => $type) {
-			$ext_preg= '![^.]\.(' . $ext_preg . ')$!i';
-			if ( preg_match( $ext_preg, $file_name, $matches ) ) {
-				return $type;
-			}
-		}
-		return false;
 	}
 	
 	// helper functions
