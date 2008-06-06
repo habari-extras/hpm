@@ -6,13 +6,8 @@
 * upgrage($package_name) upgrades given package
 * install($package_name) installs given package
 * remove($package_name) removes given package
-* clean() cleans out the local packages archive cache dir
+* clean() cleans out tmp files
 * 
-* Server methods:
-* 
-* packages.
-* 	list -> list all package_names for habari_version given
-* 	update -> return list of packages to update/add/remov
 * 
 */
 
@@ -70,18 +65,10 @@ class HabariPackages
 		return $package;
 	}
 	
-	// clean the packages list of any orphaned packges.
+	// clean tmp files left behind
 	public static function clean()
 	{
-		$packages= array();
-		foreach ( self::get_repos() as $repo ) {
-			$packages = array_merge( $packages, (array) self::list_packages( $repo ) );
-		}
 		
-		DB::query(
-			'DELETE FROM {packages} WHERE guid NOT IN (' . Utils::placeholder_string( count($packages) ) . ')',
-			$packages
-			);
 	}
 	
 	public static function get_repos()
@@ -95,14 +82,7 @@ class HabariPackages
 	 */
 	public static function update_packages( $repo )
 	{
-		$params= array(
-			'action' => 'update',
-			'last_update' => Options::get( 'hpm:last_update' ),
-			'habari_version' => Version::get_habariversion(),
-			);
-		
-		$client = new RemoteRequest( $repo, 'POST' );
-		$client->set_params( $params );
+		$client = new RemoteRequest( $repo, 'GET' );
 		if ( Error::is_error( $client->execute() ) ) {
 			return false;
 		}
@@ -110,6 +90,7 @@ class HabariPackages
 		try {
 			$packages = $client->get_response_body();
 			$packages = new SimpleXMLElement( $packages );
+			$package_list = array();
 			foreach ( $packages->package as $package ) {
 				if ( ! $package['guid'] || ! $package->versions ) {
 					continue;
@@ -127,16 +108,20 @@ class HabariPackages
 						$versions[$version['version']] = $version;
 					}
 				}
-				if ( count($versions) ) {
-					uksort( $versions, create_function('$a,$b','return version_compare($b,$a);') );
-					$new_package = array_merge( (array) current($versions), $new_package );
+				
+				uksort( $versions, create_function('$a,$b','return version_compare($b,$a);') );
+				$version = (array) current($versions);
+				
+				if ( count($version) ) {
+					$new_package = array_merge( $version, $new_package );
 					
 					if ( $old_package = HabariPackage::get( $new_package['guid'] ) ) {
-						if ( version_compare( $new_package['version'], $old_package->version, '>=' ) ) {
+						if ( isset($new_package['version']) && version_compare( $new_package['version'], $old_package->version, '>=' ) ) {
 							if ( $old_package->status == 'installed' ) {
 								$new_package['status'] = 'upgrade';
 							}
 							DB::update( DB::table('packages'), $new_package, array('guid'=>$new_package['guid']) );
+							$package_list[] = $new_package['guid'];
 						}
 						else {
 							continue;
@@ -147,45 +132,22 @@ class HabariPackages
 					}
 				}
 			}
+			
+			Utils::debug($package_list);
+			if ( $package_list ) {
+				DB::query(
+					'DELETE FROM {packages} WHERE guid NOT IN (' . Utils::placeholder_string( count($package_list) ) . ')',
+					$package_list
+					);
+			}
+			Options::set( 'hpm:repo_version', Version::get_habariversion() );
+			
 			return true;
 		}
 		catch ( Exception $e ) {
 			Utils::debug( $e );
 			return false;
 		}
-	}
-	
-	/**
-	 * @todo the server should return all packages with just the guid 
-	 *       like: <package>$guid</package>
-	 */
-	public static function list_packages( $repo )
-	{
-		$params= array(
-			'action' => 'list',
-			'last_update' => Options::get( 'hpm:last_update' ),
-			'habari_version' => Version::get_habariversion(),
-			);
-		
-		$client = new RemoteRequest( $repo, 'POST' );
-		$client->set_params( $params );
-		if ( Error::is_error( $client->execute() ) ) {
-			return array();
-		}
-		
-		$packages = array();
-		try {
-			$response= $client->get_response_body();
-			$response= new SimpleXMLElement( $response );
-			
-			foreach ( $response->package as $package ) {
-				$packages[] = strval( $package['guid'] );
-			}
-		}
-		catch ( Exception $e ) {
-			Session::notice( "could get packages from $repo" );
-		}
-		return $packages;
 	}
 	
 	public static function list_package_types()

@@ -1,0 +1,8 @@
+plugin:hpm bugfix
+--This line, and those below, will be ignored--
+
+M    packagearchive.php
+M    hpm.plugin.php
+M    habaripackage.php
+M    habaripackages.php
+M    zipreader.php

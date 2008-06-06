@@ -131,9 +131,9 @@ class HPM extends Plugin
 	
 	public function act_update( $handler, $theme )
 	{
+		Options::set( 'hpm:repos', 'http://mattread.com/packages' );
 		try {
 			HabariPackages::update();
-			HabariPackages::clean();
 			Session::notice( 'Package List is now up to date.' );
 		}
 		catch (Exception $e) {
@@ -142,7 +142,6 @@ class HPM extends Plugin
 				Utils::debug($e);
 			}
 		}
-		Options::set( 'hpm:repos', 'http://mattread.com.natasha/packages,http://mattread.org/packages' );
 	}
 
 	public function act_install( $handler, $theme )
