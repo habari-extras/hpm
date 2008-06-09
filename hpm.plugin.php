@@ -2,14 +2,13 @@
 
 class HPM extends Plugin
 {
-	static $PACKAGES_PATH;
 	const VERSION= '0.1';
 	
 	function info()
 	{
 		return array (
 			'name' => 'HPM',
-			'version' => '0.0.1',
+			'version' => '0.1',
 			'author' => 'Habari Community',
 			'license' => 'Apache License 2.0',
 		);
@@ -115,11 +114,11 @@ class HPM extends Plugin
 		}
 
 		if ( HabariPackages::require_updates() ) {
-			Session::notice( "The packages list is out of date. ".Options::get( 'hpm:last_update' ).":".time() );
+			Session::notice( "The packages list is out of date. " );
 		}
 		
 		if ( !is_writable( HabariPackages::tempnam() ) || !is_writable( HABARI_PATH . '/3rdparty' ) ) {
-			$theme->notice = 'not writable';
+			$theme->notice = 'permissions';
 			$theme->display('hpm_notice');
 			exit;
 		}
@@ -146,12 +145,6 @@ class HPM extends Plugin
 
 	public function act_install( $handler, $theme )
 	{
-		self::$PACKAGES_PATH = HABARI_PATH . '/user/packages';
-		
-		if ( ! is_dir(self::$PACKAGES_PATH) ) {
-			mkdir( self::$PACKAGES_PATH, 0777, true );
-		}
-		
 		try {
 			$package = HabariPackages::install( $handler->handler_vars['guid'] );
 			Session::notice( "{$package->name} {$package->version} was installed." );
@@ -173,8 +166,6 @@ class HPM extends Plugin
 
 	public function act_uninstall( $handler, $theme )
 	{
-		self::$PACKAGES_PATH = HABARI_PATH . '/user/packages';
-		
 		try {
 			$package = HabariPackages::remove( $handler->handler_vars['guid'] );
 			Session::notice( "{$package->name} {$package->version} was uninstalled." );
@@ -206,6 +197,7 @@ class HPM extends Plugin
 		include 'archivereader.php';
 		include 'tarreader.php';
 		include 'zipreader.php';
+		include 'txtreader.php';
 		
 		PackageArchive::register_archive_reader( 'application/x-zip', 'ZipReader' );
 		PackageArchive::register_archive_reader( 'application/zip', 'ZipReader' );
@@ -214,6 +206,7 @@ class HPM extends Plugin
 		PackageArchive::register_archive_reader( 'application/x-gzip', 'TarReader' );
 		PackageArchive::register_archive_reader( 'text/plain', 'TxtReader' );
 		PackageArchive::register_archive_reader( 'text/php', 'TxtReader' );
+		PackageArchive::register_archive_reader( 'application/php', 'TxtReader' );
 		
 		$this->add_template( 'hpm', dirname(__FILE__) . '/templates/hpm.php' );
 		$this->add_template( 'hpm_packages', dirname(__FILE__) . '/templates/hpm_packages.php' );

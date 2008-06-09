@@ -10,9 +10,6 @@ package types will be:
 packages will depend on "hooks" and satisfy "hooks"
 
 
-feilds needed:
-	category
-		- or maybe tag?
 */
 
 class HabariPackage extends QueryRecord
@@ -72,7 +69,7 @@ class HabariPackage extends QueryRecord
 		$this->unpack_files();
 		
 		$this->status= 'installed';
-		//$this->trigger_hooks( 'install' );
+		$this->trigger_hooks( 'install' );
 		
 		$this->install_profile= serialize( $this->install_profile );
 		$this->update();
@@ -80,8 +77,8 @@ class HabariPackage extends QueryRecord
 	
 	public function remove()
 	{
-		$this->install_profile= unserialize( $this->install_profile );
-		//$this->trigger_hooks( 'remove' );
+		$this->install_profile = unserialize( $this->install_profile );
+		$this->trigger_hooks( 'remove' );
 		
 		$dirs= array();
 		foreach ( array_reverse($this->install_profile) as $file => $location ) {
@@ -89,7 +86,7 @@ class HabariPackage extends QueryRecord
 			if ( is_dir($location) ) {
 				$dirs[]= $location;
 			}
-			else {
+			elseif ( is_file( $location ) ) {
 				if ( !@unlink( $location ) ) {
 					Session::error( "could not remove file, $location" );
 				}
@@ -107,6 +104,7 @@ class HabariPackage extends QueryRecord
 	public function upgrade()
 	{
 		// how do we do an upgrade? remove then instal? .....
+		// $this->trigger_hooks( 'upgrade' );
 	}
 	
 	private function get_archive()
@@ -156,7 +154,7 @@ class HabariPackage extends QueryRecord
 			case 'plugin':
 				foreach( $this->install_profile as $file => $install_location ) {
 					if ( strpos( basename($file), '.plugin.php' ) !== false ) {
-						$plugin_file = $install_location;
+						$plugin_file = HABARI_PATH . $install_location;
 					}
 				}
 				if ( isset( $plugin_file ) ) {
@@ -188,7 +186,7 @@ class HabariPackage extends QueryRecord
 	
 	public function is_compatible()
 	{
-		return version_compare( Version::get_habariversion(), $this->habari_version, 'eq' );
+		return HabariPackages::is_compatible( $this->habari_version );
 	}
 	
 	/**

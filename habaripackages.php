@@ -26,7 +26,10 @@ class HabariPackages
 	
 	public static function require_updates()
 	{
-		return ( time() > ( Options::get( 'hpm:last_update' ) + self::UPDATE_INTERVAL ) );
+		return ( 
+			time() > ( Options::get( 'hpm:last_update' ) + self::UPDATE_INTERVAL )
+			|| version_compare( Options::get( 'hpm:repo_version' ), Version::get_habariversion() ) != 0
+			);
 	}
 	
 	public static function update()
@@ -89,6 +92,7 @@ class HabariPackages
 		
 		try {
 			$packages = $client->get_response_body();
+			//Utils::debug( $packages );
 			$packages = new SimpleXMLElement( $packages );
 			$package_list = array();
 			foreach ( $packages->package as $package ) {
@@ -104,15 +108,16 @@ class HabariPackages
 				foreach( $package->versions->version as $version ) {
 					$version = (array) $version->attributes();
 					$version = $version['@attributes'];
-					if ( isset( $version['habari_version'] ) && version_compare( Version::get_habariversion(), $version['habari_version'], 'eq' ) ) {
+					if ( isset( $version['habari_version'] ) && self::is_compatible( $version['habari_version'] ) ) {
 						$versions[$version['version']] = $version;
 					}
 				}
+				//Utils::debug( $new_package, $versions );
 				
 				uksort( $versions, create_function('$a,$b','return version_compare($b,$a);') );
-				$version = (array) current($versions);
+				$version = current($versions);
 				
-				if ( count($version) ) {
+				if ( $version ) {
 					$new_package = array_merge( $version, $new_package );
 					
 					if ( $old_package = HabariPackage::get( $new_package['guid'] ) ) {
@@ -121,7 +126,7 @@ class HabariPackages
 								$new_package['status'] = 'upgrade';
 							}
 							DB::update( DB::table('packages'), $new_package, array('guid'=>$new_package['guid']) );
-							$package_list[] = $new_package['guid'];
+							$package_list[] = $old_package->id;
 						}
 						else {
 							continue;
@@ -129,16 +134,21 @@ class HabariPackages
 					}
 					else {
 						DB::insert( DB::table('packages'), $new_package );
+						$package_list[] = DB::last_insert_id();
 					}
 				}
 			}
 			
-			Utils::debug($package_list);
+			//Utils::debug($package_list);
 			if ( $package_list ) {
 				DB::query(
-					'DELETE FROM {packages} WHERE guid NOT IN (' . Utils::placeholder_string( count($package_list) ) . ')',
+					'DELETE FROM {packages} WHERE id NOT IN (' . Utils::placeholder_string( count($package_list) ) . ')',
 					$package_list
 					);
+			}
+			else {
+				//there are no compatible packages
+				DB::query( 'DELETE FROM {packages}' );
 			}
 			Options::set( 'hpm:repo_version', Version::get_habariversion() );
 			
@@ -148,6 +158,25 @@ class HabariPackages
 			Utils::debug( $e );
 			return false;
 		}
+	}
+	
+	public static function is_compatible( $ver )
+	{
+		$habari_ver = explode( '.', str_replace( array('-','_',' '), '.', Version::get_habariversion() ) );
+		$ver = explode( '.', str_replace( array('-','_',' '), '.', $ver ) );
+		$habari_ver = array_pad( $habari_ver, count($ver), '0' );
+		
+		foreach ( $habari_ver as $i => $el ) {
+			if ( isset( $ver[$i] ) ) {
+				if ( $ver[$i] != 'x' && version_compare( $el, $ver[$i] ) != 0 ) {
+					return false;
+				}
+			}
+			else {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	public static function list_package_types()
