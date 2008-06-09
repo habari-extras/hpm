@@ -80,8 +80,8 @@ class HPM extends Plugin
 			if ( DB::dbdelta( $schema ) ) {
 				Session::notice( 'Updated the HPM database tables.' );
 			}
-			Options::set( 'hpm:last_update', 1 );
-			Options::set( 'hpm:repos', 'http://mattread.com/packages' );
+			Options::set( 'hpm__last_update', 1 );
+			Options::set( 'hpm__repos', 'http://mattread.com/packages' );
 		}
 	}
 	public function action_plugin_deactivation( $file )
@@ -92,6 +92,32 @@ class HPM extends Plugin
 			
 			DB::query( 'DROP TABLE IF EXISTS {packages} ' );
 			DB::query( 'DROP TABLE IF EXISTS {package_repos} ' );
+		}
+	}
+	
+	public function filter_plugin_config( $actions, $plugin_id )
+	{
+		if ( $plugin_id == $this->plugin_id() ) {
+			$actions[]= _t('Add Sources', 'hpm');
+		}
+		return $actions;
+	}
+	
+	public function action_plugin_ui( $plugin_id, $action )
+	{
+		if ( $plugin_id == $this->plugin_id() ) {
+			switch ( $action ) {
+				case _t('Add Sources', 'hpm') :
+					$ui = new FormUI( 'hpm' );
+					
+					$api_key= $ui->append( 'textarea', 'repos', 'option:hpm__repos', _t('HPM Repositories (comma seperated): ', 'hpm') );
+					$api_key->add_validator( 'validate_required' );
+					
+					$ui->append( 'submit', 'save', _t( 'Save', 'hpm' ) );
+					$ui->set_option( 'success_message', _t( 'Configuration saved', 'hpm' ) );
+					$ui->out();
+					break;
+			}
 		}
 	}
 
@@ -130,7 +156,6 @@ class HPM extends Plugin
 	
 	public function act_update( $handler, $theme )
 	{
-		Options::set( 'hpm:repos', 'http://mattread.com/packages' );
 		try {
 			HabariPackages::update();
 			Session::notice( 'Package List is now up to date.' );

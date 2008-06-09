@@ -27,19 +27,38 @@ class HabariPackages
 	public static function require_updates()
 	{
 		return ( 
-			time() > ( Options::get( 'hpm:last_update' ) + self::UPDATE_INTERVAL )
-			|| version_compare( Options::get( 'hpm:repo_version' ), Version::get_habariversion() ) != 0
+			time() > ( Options::get( 'hpm__last_update' ) + self::UPDATE_INTERVAL )
+			|| version_compare( Options::get( 'hpm__repo_version' ), Version::get_habariversion() ) != 0
 			);
 	}
 	
 	public static function update()
 	{
+		$package_list = array();
+		$packages = array();
+		
 		foreach ( self::get_repos() as $repo ) {
-			if ( !self::update_packages( $repo ) ) {
+			$package_list +=  self::update_packages( $repo );
+			if ( $package_list === false ) {
 				Session::notice( sprintf( "Could not update packages from %s", $repo ) );
 			}
+			else {
+				$package_list += $packages;
+			}
 		}
-		Options::set( 'hpm:last_update', time() );
+		Options::set( 'hpm__last_update', time() );
+		
+		// get rid of orphaned/incompatible packages
+		if ( $package_list ) {
+			DB::query(
+				'DELETE FROM {packages} WHERE id NOT IN (' . Utils::placeholder_string( count($package_list) ) . ')',
+				$package_list
+				);
+		}
+		else {
+			// there are no compatible packages, so crap 'em all
+			DB::query( 'DELETE FROM {packages}' );
+		}
 	}
 	
 	public static function upgrade( $package_name )
@@ -76,7 +95,7 @@ class HabariPackages
 	
 	public static function get_repos()
 	{
-		$repos= array_map( 'trim', (array) explode( ',', Options::get( 'hpm:repos' ) ) );
+		$repos= array_map( 'trim', (array) explode( ',', Options::get( 'hpm__repos' ) ) );
 		return $repos;
 	}
 	
@@ -105,6 +124,7 @@ class HabariPackages
 				$new_package['description'] = strval( $package->description );
 				
 				$versions = array();
+				//Utils::debug($package->versions);
 				foreach( $package->versions->version as $version ) {
 					$version = (array) $version->attributes();
 					$version = $version['@attributes'];
@@ -139,20 +159,9 @@ class HabariPackages
 				}
 			}
 			
-			//Utils::debug($package_list);
-			if ( $package_list ) {
-				DB::query(
-					'DELETE FROM {packages} WHERE id NOT IN (' . Utils::placeholder_string( count($package_list) ) . ')',
-					$package_list
-					);
-			}
-			else {
-				//there are no compatible packages
-				DB::query( 'DELETE FROM {packages}' );
-			}
-			Options::set( 'hpm:repo_version', Version::get_habariversion() );
+			Options::set( 'hpm__repo_version', Version::get_habariversion() );
 			
-			return true;
+			return $package_list;
 		}
 		catch ( Exception $e ) {
 			Utils::debug( $e );

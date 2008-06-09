@@ -161,14 +161,16 @@ class HabariPackage extends QueryRecord
 					switch ( $hook ) {
 						case 'install':
 							Plugins::activate_plugin( $plugin_file );
-							Session::notice( "{$this->name} Activated." );
+							Session::notice( "{$this->name} {$this->version} Activated." );
 						break;
 						case 'remove':
 							Plugins::deactivate_plugin( $plugin_file );
+							Session::notice( "{$this->name} {$this->version} Dectivated." );
 						break;
 						case 'upgrade':
 							Plugins::act('plugin_upgrade', $plugin_file); // For the plugin to upgrade itself
 							Plugins::act('plugin_upgraded', $plugin_file); // For other plugins to react to a plugin upgrade
+							Session::notice( "{$this->name} {$this->version} Upgraded." );
 						break;
 					}
 				}
