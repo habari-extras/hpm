@@ -20,6 +20,15 @@
 			
 			<?php break; ?>
 			
+		<?php case 'readme' : ?>
+			<h2><?php echo $package->name; ?></h2>
+				<h3>Readme Instructions</h3>
+					<pre><?php echo $package->readme_doc; ?></pre>
+					<p>
+						<a href="' . URL::get('admin', 'page=hpm' ) . '">Return to Packages List</a>';
+					</p>
+			<?php break; ?>
+			
 	<?php endswitch; ?>
 </div>
 

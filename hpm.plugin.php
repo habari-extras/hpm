@@ -167,16 +167,35 @@ class HPM extends Plugin
 			}
 		}
 	}
-
+	
+	public function act_upgrade( $handler, $theme )
+	{
+		try {
+			$package = HabariPackages::upgrade( $handler->handler_vars['guid'] );
+			Session::notice( "{$package->name} was upgraded to version {$package->version}." );
+			if ( $package->readme_doc ) {
+				$theme->notice = 'readme';
+				$theme->package = $package;
+				$theme->display('hpm_notice');
+				exit;
+			}
+		}
+		catch (Exception $e) {
+			Session::error( 'Could not complete upgrade: '.  $e->getMessage() );
+			if ( DEBUG ) {
+				Utils::debug($e);
+			}
+		}
+	}
+	
 	public function act_install( $handler, $theme )
 	{
 		try {
 			$package = HabariPackages::install( $handler->handler_vars['guid'] );
 			Session::notice( "{$package->name} {$package->version} was installed." );
 			if ( $package->readme_doc ) {
-				$theme->notice = '<h2>'. $package->name .'</h2></h2><h3>Readme Instructions</h3>
-					<pre>' . $package->readme_doc . '</pre><div>
-					<a href="' . URL::get('admin', 'page=hpm' ) . '">Return to Packages List</a></div>';
+				$theme->notice = 'readme';
+				$theme->package = $package;
 				$theme->display('hpm_notice');
 				exit;
 			}
@@ -207,8 +226,15 @@ class HPM extends Plugin
 	{
 		$theme = Themes::create( 'admin', 'RawPHPEngine', dirname(__FILE__) .'/' );
 		$search = isset( $handler->handler_vars['search'] ) ? $handler->handler_vars['search'] : '';
-		$where = "(name LIKE CONCAT('%',?,'%') OR description LIKE CONCAT('%',?,'%') OR tags LIKE CONCAT('%',?,'%'))";
-		$theme->packages = DB::get_results('SELECT * FROM ' . DB::table('packages') . " WHERE $where LIMIT 30", array($search, $search,$search), 'HabariPackage');
+		$search = explode( ' ', $search );
+		$where = array();
+		$vals = array();
+		
+		foreach ( $search as $term ) {
+			$where[] = "(name LIKE CONCAT('%',?,'%') OR description LIKE CONCAT('%',?,'%') OR tags LIKE CONCAT('%',?,'%') OR type LIKE CONCAT('%',?,'%'))";
+			$vals = array_pad( $vals, count($vals) + 4, $term );
+		}
+		$theme->packages = DB::get_results('SELECT * FROM ' . DB::table('packages') . " WHERE " . implode( ' AND ', $where ), $vals, 'HabariPackage');
 		echo json_encode( array( 'items' =>  $theme->fetch('hpm_packages') ) );
 	}
 	

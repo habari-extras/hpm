@@ -9,6 +9,7 @@ package types will be:
 
 packages will depend on "hooks" and satisfy "hooks"
 
+need a clean_up() routine to clean tmp files serialize certain feilds and call update() to save.
 
 */
 
@@ -103,8 +104,25 @@ class HabariPackage extends QueryRecord
 	
 	public function upgrade()
 	{
-		// how do we do an upgrade? remove then instal? .....
+		// how do we do an upgrade? remove then install? .....
 		// $this->trigger_hooks( 'upgrade' );
+		/*
+		 * get install profile, save in var
+		 * open base install dir with lock
+		 * move installed files to tmp folder
+		 * build new install profile for new archive
+		 * install new archive files
+		 * change status to installed
+		 * trigger upgrade hooks
+		 * 
+		 * if error on any step above:
+		 *    move tmp files back
+		 *    restore install profile
+		 *    change status back to upgrade
+		 * 
+		 * serialize install profile
+		 * save and clean up
+		 */
 	}
 	
 	private function get_archive()

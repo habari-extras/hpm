@@ -1,4 +1,5 @@
-<?php foreach ( $packages as $package) : ?>
+<?php if ( $packages ) : ?>
+	<?php foreach ( $packages as $package) : ?>
 		<div class="item clear" id="package_<?php echo $package->id; ?>">
 			<div class="head clear">
 				<?php echo "{$package->name} {$package->version}"; ?>
@@ -21,4 +22,9 @@
 				<?php endif; ?>
 			</ul>
 		</div>
-<?php endforeach; ?>
+	<?php endforeach; ?>
+<?php else : ?>
+		<div class="item clear" id="">
+			No Packages available for Habari <?php echo Version::get_habariversion(); ?>. Try to find some more repository sources which may have more up-to-date packages.
+		</div>
+<?php endif; ?>
