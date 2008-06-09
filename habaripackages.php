@@ -38,12 +38,12 @@ class HabariPackages
 		$packages = array();
 		
 		foreach ( self::get_repos() as $repo ) {
-			$package_list +=  self::update_packages( $repo );
-			if ( $package_list === false ) {
+			$packages =  self::update_packages( $repo );
+			if ( $packages === false ) {
 				Session::notice( sprintf( "Could not update packages from %s", $repo ) );
 			}
 			else {
-				$package_list += $packages;
+				$package_list = array_merge( $package_list, $packages );
 			}
 		}
 		Options::set( 'hpm__last_update', time() );
