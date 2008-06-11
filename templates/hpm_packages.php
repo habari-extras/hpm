@@ -1,6 +1,6 @@
 <?php if ( $packages ) : ?>
 	<?php foreach ( $packages as $package) : ?>
-		<div class="item clear" id="package_<?php echo $package->id; ?>">
+		<div class="item clear <?php echo ($package->status == 'upgrade')?' unapproved ':''; echo (!$package->is_compatible())?' spam ':''; ?>" id="package_<?php echo $package->id; ?>">
 			<div class="head clear">
 				<?php echo "{$package->name} {$package->version}"; ?>
 			</div>
@@ -9,7 +9,7 @@
 			<div class="content"><?php echo "{$package->name} {$package->version} is not compatible with Habari " . Version::get_habariversion(); ?></div>
 			<?php endif; ?>
 			
-			<ul class="dropbutton<?php echo ($package->status == 'upgrade' || !$package->is_compatible())?' alert':''; ?>">
+			<ul class="dropbutton">
 				<?php if ( $package->status == 'upgrade' ) : ?>
 				<li><a href=" <?php Site::out_url('admin') ?>/hpm?action=upgrade&guid=<?php echo $package->guid ?>">upgrade</a></li>
 				<?php endif; ?>

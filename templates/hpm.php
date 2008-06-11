@@ -1,42 +1,34 @@
 <?php include HABARI_PATH . '/system/admin/header.php'; ?>
 
 <div class="container navigator">
-	<span class="search pct100"><input id="search" type="search" placeholder="Type and wait to search for any entry component" autosave="habaricontent" results="100" value=""></span>
-</div>
-
-<div class="container">
-
-	<div class="navigator pct15 first" style="overflow:auto; height:400px;">
+	<div class="pct85">
+		<span class="search pct100"><input id="search" type="search" placeholder="Type and wait to search for any entry component" autosave="habaricontent" results="100" value=""></span>
 		
-		<h3>Quick Searches</h3>
-		<ul class="special_search pct100">
-			<li><a href="#plugin">Plugins</a></li>
-			<li><a href="#theme">Themes</a></li>
-			<li><a href="#admin">Administration</a></li>
-			<li><a href="#spam">Spam Filter</a></li>
-			<li><a href="#service">3rdparty Services</a></li>
-			<li><a href="#two column">Two Column</a></li>
-			<li><a href="#blue">Blue</a></li>
-			<li><a href="#pink">Pink</a></li>
-		</ul>
-		
+		<span class="special_search pct100">
+			<a href="#plugin">Plugins</a>
+			<a href="#theme">Themes</a>
+			<a href="#admin">Administration</a>
+			<a href="#spam">Spam Filter</a>
+			<a href="#service">3rdparty Services</a>
+			<a href="#two column">Two Column</a>
+			<a href="#blue">Blue</a>
+			<a href="#pink">Pink</a>
+		</span>
 	</div>
 	
-	<div class="navigator pct10">&nbsp;</div>
+	<div class="pct5">&nbsp;</div>
 	
-	<div class="items entries pct75 last" style="overflow:auto; height:400px;">
-		<?php $theme->display( 'hpm_packages' ); ?>
-	</div>
-
-</div>
-
-<div class="container clear">
-	<div class="pct75">Powered by HPM <?php echo HPM::VERSION; ?> and a Pony</div>
-	<div class="pct25 item">
-		<ul class="dropbutton<?php echo ( HabariPackages::require_updates() )?' alert':''; ?>">
+	<div class="pct10 item">
+		<ul class="dropbutton <?php echo ( HabariPackages::require_updates() )?'alert':''; ?>">
 			<li><a href="<?php URL::out('admin', 'page=hpm&action=update'); ?>">Update Package List</a></li>
 		</ul>
 	</div>
+</div>
+
+<div id="comments">
+<div class="container items entries">
+	<?php $theme->display( 'hpm_packages' ); ?>
+</div>
 </div>
 
 <script type="text/javascript">
