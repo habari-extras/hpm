@@ -67,6 +67,8 @@ class HabariPackages
 		if ( $package->status == 'upgrade' ) {
 			$package->upgrade();
 		}
+		
+		return $package;
 	}
 	
 	public static function install( $package_name )
@@ -90,7 +92,7 @@ class HabariPackages
 	// clean tmp files left behind
 	public static function clean()
 	{
-		
+		// remove all tmp files and dirs starting with "HPM-"
 	}
 	
 	public static function get_repos()
@@ -141,7 +143,7 @@ class HabariPackages
 					$new_package = array_merge( $version, $new_package );
 					
 					if ( $old_package = HabariPackage::get( $new_package['guid'] ) ) {
-						if ( isset($new_package['version']) && version_compare( $new_package['version'], $old_package->version, '>=' ) ) {
+						if ( isset($new_package['version']) && version_compare( $new_package['version'], $old_package->version, '>' ) ) {
 							if ( $old_package->status == 'installed' ) {
 								$new_package['status'] = 'upgrade';
 							}
@@ -149,7 +151,7 @@ class HabariPackages
 							$package_list[] = $old_package->id;
 						}
 						else {
-							continue;
+							$package_list[] = $old_package->id;
 						}
 					}
 					else {
@@ -218,7 +220,20 @@ class HabariPackages
 	
 	public static function tempnam()
 	{
-		return tempnam( HABARI_PATH . '/system/cache', 'HPM' );
+		return tempnam( HABARI_PATH . '/system/cache', 'HPM-' );
+	}
+	
+	public static function tempdir()
+	{
+		$tmp_dir = 'HPM-' . md5( UUID::get() );
+		if ( is_writable( HABARI_PATH . "/system/cache" ) ) {
+			$tmp_dir = HABARI_PATH . "/system/cache/$tmp_dir";
+		}
+		else {
+			$tmp_dir = sys_get_temp_dir() . "/$tmp_dir";
+		}
+		mkdir( $tmp_dir, 0777 );
+		return $tmp_dir;
 	}
 }
 

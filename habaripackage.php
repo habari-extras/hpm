@@ -104,25 +104,67 @@ class HabariPackage extends QueryRecord
 	
 	public function upgrade()
 	{
-		// how do we do an upgrade? remove then install? .....
-		// $this->trigger_hooks( 'upgrade' );
-		/*
-		 * get install profile, save in var
-		 * open base install dir with lock
-		 * move installed files to tmp folder
-		 * build new install profile for new archive
-		 * install new archive files
-		 * change status to installed
-		 * trigger upgrade hooks
-		 * 
-		 * if error on any step above:
-		 *    move tmp files back
-		 *    restore install profile
-		 *    change status back to upgrade
-		 * 
-		 * serialize install profile
-		 * save and clean up
+		if ( ! $this->is_compatible() ) {
+			throw new Exception( "{$this->name} {$this->version} is not compatible with Habari " . Version::get_habariversion() );
+		}
+		$this->install_profile = unserialize( $this->install_profile );
+		$current_install_profile = $this->install_profile;
+		
+		$bad_perms = array_filter(
+			array_map(
+				create_function( '$a', 'return ! is_writable(HABARI_PATH . "/$a");'),
+				$current_install_profile
+				)
+			);
+		if ( $bad_perms ) {
+			throw new Exception( "incorrect permission settings. Please make all files for {$this->name} writeable by the server, and try again." );
+		}
+		
+		// move the current version to tmp dir
+		$tmp_dir = HabariPackages::tempdir();
+		$dirs = array();
+		foreach( $current_install_profile as $file => $location ) {
+			if ( is_dir( HABARI_PATH . $location ) ) {
+				$dirs[] = HABARI_PATH . $location;
+				continue;
+			}
+			else {
+				mkdir( dirname( $tmp_dir . $location ), 0777, true );
+				rename( HABARI_PATH . $location, $tmp_dir . $location );
+			}
+		}
+		foreach( $dirs as $dir ) {
+			@rmdir( $dir );
+		}
+		
+		// try and install new version
+		try {
+			$this->get_archive();
+			$this->build_install_profile();
+			$this->unpack_files();
+		
+			$this->status= 'installed';
+			$this->trigger_hooks( 'upgrade' );
+			
+			$this->install_profile= serialize( $this->install_profile );
+			$this->update();
+		}
+		// revert to old version if new install failed
+		catch( Exception $e ) {
+			foreach( $current_install_profile as $file => $location ) {
+				rename( $tmp_dir . '/' . $location, HABARI_PATH . '/' . $location );
+			}
+			/**
+			 * @todo this needs to be a recursive rmdir
+			 */
+			@rmdir( $tmp_dir );
+			throw new Exception( $e->getMessage() );
+		}
+		/**
+		 * @todo this needs to be a recursive rmdir
 		 */
+		// clean up tmp files
+		@rmdir( $tmp_dir );
 	}
 	
 	private function get_archive()
