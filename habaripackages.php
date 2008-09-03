@@ -54,6 +54,7 @@ class HabariPackages
 				'DELETE FROM {packages} WHERE id NOT IN (' . Utils::placeholder_string( count($package_list) ) . ')',
 				$package_list
 				);
+			// @todo add message about number of obsolete packages deleted
 		}
 		else {
 			// there are no compatible packages, so crap 'em all

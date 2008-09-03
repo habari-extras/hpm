@@ -212,6 +212,9 @@ class HabariPackage extends QueryRecord
 		$this->install_profile= $install_profile;
 	}
 	
+	/**
+	 * @todo there should be pre and post hooks
+	 */
 	private function trigger_hooks( $hook )
 	{
 		switch ( $this->type ) {

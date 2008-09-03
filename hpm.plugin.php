@@ -84,7 +84,7 @@ class HPM extends Plugin
 				Session::notice( 'Updated the HPM database tables.' );
 			}
 			Options::set( 'hpm__last_update', 1 );
-			Options::set( 'hpm__repos', 'http://mattread.com/packages' );
+			Options::set( 'hpm__repos', 'http://habariproject.org/en/packages' );
 		}
 	}
 	public function action_plugin_deactivation( $file )
