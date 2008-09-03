@@ -192,6 +192,10 @@ class HabariPackage extends QueryRecord
 	
 	private function build_install_profile()
 	{
+		if ( ! $this->archive->get_file_list() ) {
+			throw new Exception( "Archive does not contain any files" );
+		}
+		
 		$install_profile= array();
 		foreach ( $this->archive->get_file_list() as $file ) {
 			if ( basename($file) == 'README' ) {

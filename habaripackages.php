@@ -220,14 +220,14 @@ class HabariPackages
 	
 	public static function tempnam()
 	{
-		return tempnam( HABARI_PATH . '/system/cache', 'HPM-' );
+		return tempnam( HABARI_PATH . '/3rdparty/hpm', 'HPM-' );
 	}
 	
 	public static function tempdir()
 	{
 		$tmp_dir = 'HPM-' . md5( UUID::get() );
-		if ( is_writable( HABARI_PATH . "/system/cache" ) ) {
-			$tmp_dir = HABARI_PATH . "/system/cache/$tmp_dir";
+		if ( is_writable( HABARI_PATH . "/3rdparty/hpm" ) ) {
+			$tmp_dir = HABARI_PATH . "/3rdparty/hpm/$tmp_dir";
 		}
 		else {
 			$tmp_dir = sys_get_temp_dir() . "/$tmp_dir";

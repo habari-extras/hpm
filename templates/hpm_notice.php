@@ -6,9 +6,9 @@
 			<h2>Incorrect Permission</h2>
 			<p>HPM requires the temporary folder and install location to be writable by the server. Please make the following changes.</p>
 			
-			<?php if ( !is_writable( HabariPackages::tempnam() ) ) : ?>
+			<?php if ( !is_writable( HabariPackages::tempdir() ) ) : ?>
 				<h3>Temporary Folder</h3>
-				<p>Please make <?php echo HabariPackages::tempnam(); ?> writable by the server</p>
+				<p>Please make <?php echo HabariPackages::tempdir(); ?> writable by the server</p>
 				<p>...explain the process here...</p> 
 			<?php endif; ?>
 			

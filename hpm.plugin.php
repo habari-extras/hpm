@@ -2,13 +2,14 @@
 
 class HPM extends Plugin
 {
-	const VERSION= '0.1';
+	const VERSION= '0.2';
+	const DB_VERSION = 001;
 	
 	function info()
 	{
 		return array (
 			'name' => 'HPM',
-			'version' => '0.1',
+			'version' => '0.2.alpha',
 			'author' => 'Habari Community',
 			'license' => 'Apache License 2.0',
 		);
@@ -16,14 +17,16 @@ class HPM extends Plugin
 	
 	public function action_init()
 	{
-		Plugins::act( 'hpm_init' );
 	}
 	
 	public function action_update_check()
   	{
     	Update::add( 'hpm', '693E59D6-2B5F-11DD-A23A-9E6C56D89593',  $this->info->version );
   	}
-
+	
+	/**
+	 * @todo fix this schema!!!!
+	 */
 	public function action_plugin_activation( $file )
 	{
 		if ( $file == str_replace( '\\','/', $this->get_file() ) ) {
@@ -129,13 +132,15 @@ class HPM extends Plugin
 	
 	public function action_admin_theme_get_hpm( $handler, $theme )
 	{
+		Plugins::act( 'hpm_init' );
+		
 		if ( isset( $handler->handler_vars['action'] ) ) {
 			$action= $handler->handler_vars['action'];
 			if ( method_exists( $this, "act_$action" ) ) {
 				$this->{"act_$action"}( $handler, $theme );
 			}
 			else {
-				Plugins::act( "hpm_$action", $handler, $theme );
+				Plugins::act( "hpm_act_$action", $handler, $theme );
 			}
 		}
 
@@ -143,7 +148,7 @@ class HPM extends Plugin
 			Session::notice( "The packages list is out of date. " );
 		}
 		
-		if ( !is_writable( HabariPackages::tempnam() ) || !is_writable( HABARI_PATH . '/3rdparty' ) ) {
+		if ( !is_writable( HabariPackages::tempdir() ) || !is_writable( HABARI_PATH . '/3rdparty' ) ) {
 			$theme->notice = 'permissions';
 			$theme->display('hpm_notice');
 			exit;

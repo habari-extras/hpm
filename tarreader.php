@@ -69,8 +69,8 @@ class TarReader implements ArchiveReader
 {
 	private $filename;
 	private $tar_file;
-	private $filelist= array();
-	private $files;
+	private $filelist = array();
+	private $files = array();
 	private $directories;
 	
 	public $numFiles;
