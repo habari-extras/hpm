@@ -217,9 +217,10 @@ class HabariPackage extends QueryRecord
 	 */
 	private function trigger_hooks( $hook )
 	{
+		$install_profile = $this->install_profile;
 		switch ( $this->type ) {
 			case 'plugin':
-				foreach( $this->install_profile as $file => $install_location ) {
+				foreach( $install_profile as $file => $install_location ) {
 					if ( strpos( basename($file), '.plugin.php' ) !== false ) {
 						$plugin_file = HABARI_PATH . $install_location;
 					}

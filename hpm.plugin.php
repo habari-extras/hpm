@@ -229,6 +229,7 @@ class HPM extends Plugin
 
 	public function action_auth_ajax_hpm_packages( $handler )
 	{
+		Plugins::act('hpm_init');
 		$theme = Themes::create( 'admin', 'RawPHPEngine', dirname(__FILE__) .'/' );
 		$search = isset( $handler->handler_vars['search'] ) ? $handler->handler_vars['search'] : '';
 		$search = explode( ' ', $search );
