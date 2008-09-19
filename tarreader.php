@@ -78,20 +78,20 @@ class TarReader implements ArchiveReader
 	
 	public function __construct( $filename )
 	{
-		$this->tar_file= file_get_contents( $filename );
+		$this->tar_file = file_get_contents( $filename );
 		$this->parse();
 	}
 	
 	public function get_file_list()
 	{
 		if ( ! $this->filelist ) {
-			$this->filelist= array_map( create_function('$a', 'return $a["name"];'), $this->files );
+			$this->filelist = array_map( create_function('$a', 'return $a["name"];'), $this->files );
 		}
 		
 		return $this->filelist;
 	}
 	
-	public function unpack( $file, $location, $perms= 0777 )
+	public function unpack( $file, $location, $perms = 0777 )
 	{
 		// if the dir doesn't exist, make it, recursively
 		if ( ! is_dir( dirname($location) ) ) {
@@ -106,10 +106,10 @@ class TarReader implements ArchiveReader
 	}
 	
 	private function compute_unsigned_checksum($bytestring) {
-		$unsigned_chksum='';
-		for($i=0; $i<512; $i++)
+		$unsigned_chksum ='';
+		for($i =0; $i<512; $i++)
 			$unsigned_chksum += ord($bytestring[$i]);
-		for($i=0; $i<8; $i++)
+		for($i =0; $i<8; $i++)
 			$unsigned_chksum -= ord($bytestring[148 + $i]);
 		$unsigned_chksum += ord(" ") * 8;
 		

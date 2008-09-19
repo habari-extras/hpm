@@ -14,11 +14,11 @@ class PackageArchive
 	
 	private $url;
 	private $reader;
-	private static $archive_readers= array();
+	private static $archive_readers = array();
 	
 	public function __construct( $url )
 	{
-		$this->url= $url;
+		$this->url = $url;
 	}
 	
 	public function fetch()
@@ -61,7 +61,7 @@ class PackageArchive
 	public function set_archive_reader( $mime, $file )
 	{
 		if ( isset( self::$archive_readers[$mime] ) ) {
-			$this->reader= new self::$archive_readers[$mime]( $file );
+			$this->reader = new self::$archive_readers[$mime]( $file );
 		}
 		else {
 			throw new Exception( "No Archive reader available for type {$mime}" );
@@ -74,7 +74,7 @@ class PackageArchive
 		return $this->reader->get_file_list();
 	}
 	
-	public function unpack( $file, $location, $perms= 0777 )
+	public function unpack( $file, $location, $perms = 0777 )
 	{
 		return $this->reader->unpack( $file, $location, $perms );
 	}

@@ -5,11 +5,11 @@
 class TxtReader implements ArchiveReader
 {
 	
-	private $filelist= array();
+	private $filelist = array();
 	
 	public function __construct( $filename )
 	{
-		$this->filelist= array( $filename => $filename );
+		$this->filelist = array( $filename => $filename );
 	}
 	
 	public function get_file_list()
@@ -17,7 +17,7 @@ class TxtReader implements ArchiveReader
 		return $this->filelist;
 	}
 	
-	public function unpack( $file, $location, $perms= 0777 )
+	public function unpack( $file, $location, $perms = 0777 )
 	{
 		if ( ! is_dir( dirname($location) ) ) {
 			mkdir( dirname($location), $perms, true );

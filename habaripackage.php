@@ -43,7 +43,7 @@ class HabariPackage extends QueryRecord
 	
 	public static function get( $guid )
 	{
-		$package= DB::get_row( 'SELECT * FROM ' . DB::table('packages') . ' WHERE guid = ?',
+		$package = DB::get_row( 'SELECT * FROM ' . DB::table('packages') . ' WHERE guid = ?',
 			array( $guid ), 'HabariPackage' );
 		
 		return $package;
@@ -69,10 +69,10 @@ class HabariPackage extends QueryRecord
 		$this->build_install_profile();
 		$this->unpack_files();
 		
-		$this->status= 'installed';
+		$this->status = 'installed';
 		$this->trigger_hooks( 'install' );
 		
-		$this->install_profile= serialize( $this->install_profile );
+		$this->install_profile = serialize( $this->install_profile );
 		$this->update();
 	}
 	
@@ -81,9 +81,9 @@ class HabariPackage extends QueryRecord
 		$this->install_profile = unserialize( $this->install_profile );
 		$this->trigger_hooks( 'remove' );
 		
-		$dirs= array();
+		$dirs = array();
 		foreach ( array_reverse($this->install_profile) as $file => $location ) {
-			$location= HABARI_PATH . '/' . ltrim( $location, '/\\' );
+			$location = HABARI_PATH . '/' . ltrim( $location, '/\\' );
 			if ( is_dir($location) ) {
 				$dirs[]= $location;
 			}
@@ -97,8 +97,8 @@ class HabariPackage extends QueryRecord
 		foreach ( $dirs as $dir ) {
 			rmdir( $dir );
 		}
-		$this->install_profile= '';
-		$this->status= '';
+		$this->install_profile = '';
+		$this->status = '';
 		$this->update();
 	}
 	
@@ -143,10 +143,10 @@ class HabariPackage extends QueryRecord
 			$this->build_install_profile();
 			$this->unpack_files();
 		
-			$this->status= 'installed';
+			$this->status = 'installed';
 			$this->trigger_hooks( 'upgrade' );
 			
-			$this->install_profile= serialize( $this->install_profile );
+			$this->install_profile = serialize( $this->install_profile );
 			$this->update();
 		}
 		// revert to old version if new install failed
@@ -196,10 +196,10 @@ class HabariPackage extends QueryRecord
 			throw new Exception( "Archive does not contain any files" );
 		}
 		
-		$install_profile= array();
+		$install_profile = array();
 		foreach ( $this->archive->get_file_list() as $file ) {
 			if ( basename($file) == 'README' ) {
-				$this->readme_doc=  $this->archive->read_file($file);
+				$this->readme_doc =  $this->archive->read_file($file);
 			}
 			if ( strpos( $file, '__MACOSX' ) === 0 ) {
 				// stoopid mac users!
@@ -209,7 +209,7 @@ class HabariPackage extends QueryRecord
 			$install_profile[$file]= HabariPackages::type_location( $this->type ) . '/' . $file;
 		}
 		
-		$this->install_profile= $install_profile;
+		$this->install_profile = $install_profile;
 	}
 	
 	/**

@@ -14,8 +14,8 @@
 class HabariPackages
 {
 	
-	private static $types= array();
-	private static $types_location= array();
+	private static $types = array();
+	private static $types_location = array();
 	
 	const UPDATE_INTERVAL = 259000;
 	
@@ -64,7 +64,7 @@ class HabariPackages
 	
 	public static function upgrade( $package_name )
 	{
-		$package= HabariPackage::get( $package_name );
+		$package = HabariPackage::get( $package_name );
 		if ( $package->status == 'upgrade' ) {
 			$package->upgrade();
 		}
@@ -74,7 +74,7 @@ class HabariPackages
 	
 	public static function install( $package_name )
 	{
-		$package= HabariPackage::get( $package_name );
+		$package = HabariPackage::get( $package_name );
 		$package->install();
 		
 		return $package;
@@ -82,7 +82,7 @@ class HabariPackages
 	
 	public static function remove( $package_name )
 	{
-		$package= HabariPackage::get( $package_name );
+		$package = HabariPackage::get( $package_name );
 		if ( $package->status != '' ) {
 			$package->remove();
 		}
@@ -98,7 +98,7 @@ class HabariPackages
 	
 	public static function get_repos()
 	{
-		$repos= array_map( 'trim', (array) explode( ',', Options::get( 'hpm__repos' ) ) );
+		$repos = array_map( 'trim', (array) explode( ',', Options::get( 'hpm__repos' ) ) );
 		return $repos;
 	}
 	
@@ -196,22 +196,22 @@ class HabariPackages
 		if ( self::$types ) {
 			return self::$types;
 		}
-		self::$types= array(
+		self::$types = array(
 			'system',
 			'plugin',
 			'theme'
 			);
-		self::$types= array_merge( Plugins::filter( 'package_types', array() ), self::$types );
+		self::$types = array_merge( Plugins::filter( 'package_types', array() ), self::$types );
 		return self::$types;
 	}
 	
 	public static function type_location( $type )
 	{
-		$types= self::list_package_types();
+		$types = self::list_package_types();
 		if ( is_numeric( $type ) ) {
-			$type= $types[$type];
+			$type = $types[$type];
 		}
-		$type_locations= array(
+		$type_locations = array(
 			'system'=>'',
 			'plugin'=>'/3rdparty/plugins',
 			'theme'=>'/3rdparty/themes',

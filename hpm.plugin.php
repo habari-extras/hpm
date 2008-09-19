@@ -2,7 +2,7 @@
 
 class HPM extends Plugin
 {
-	const VERSION= '0.2';
+	const VERSION = '0.2';
 	const DB_VERSION = 001;
 	
 	function info()
@@ -34,7 +34,7 @@ class HPM extends Plugin
 			
 			switch( DB::get_driver_name() ) {
 				case 'sqlite':
-					$schema= 'CREATE TABLE ' . DB::table('packages') . ' (
+					$schema = 'CREATE TABLE ' . DB::table('packages') . ' (
 						id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 						name VARCHAR(255) NOT NULL,
 						guid VARCHAR(255) NOT NULL,
@@ -57,7 +57,7 @@ class HPM extends Plugin
 				
 				default:
 				case 'mysql':
-					$schema= 'CREATE TABLE ' . DB::table('packages') . ' (
+					$schema = 'CREATE TABLE ' . DB::table('packages') . ' (
 						id INT UNSIGNED NOT NULL AUTO_INCREMENT,
 						name VARCHAR(255) NOT NULL,
 						guid VARCHAR(255) NOT NULL,
@@ -113,7 +113,7 @@ class HPM extends Plugin
 				case _t('Add Sources', 'hpm') :
 					$ui = new FormUI( 'hpm' );
 					
-					$api_key= $ui->append( 'textarea', 'repos', 'option:hpm__repos', _t('HPM Repositories (comma seperated): ', 'hpm') );
+					$api_key = $ui->append( 'textarea', 'repos', 'option:hpm__repos', _t('HPM Repositories (comma seperated): ', 'hpm') );
 					$api_key->add_validator( 'validate_required' );
 					
 					$ui->append( 'submit', 'save', _t( 'Save', 'hpm' ) );
@@ -135,7 +135,7 @@ class HPM extends Plugin
 		Plugins::act( 'hpm_init' );
 		
 		if ( isset( $handler->handler_vars['action'] ) ) {
-			$action= $handler->handler_vars['action'];
+			$action = $handler->handler_vars['action'];
 			if ( method_exists( $this, "act_$action" ) ) {
 				$this->{"act_$action"}( $handler, $theme );
 			}

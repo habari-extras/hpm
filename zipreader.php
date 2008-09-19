@@ -4,9 +4,9 @@ include 'dunzip2.php';
 
 class ZipReader extends dUnzip2 implements ArchiveReader
 {
-	const DUNZIP2_VERSION= 2.6;
+	const DUNZIP2_VERSION = 2.6;
 	
-	private $filelist= array();
+	private $filelist = array();
 	
 	public function __construct( $filename )
 	{
@@ -16,13 +16,13 @@ class ZipReader extends dUnzip2 implements ArchiveReader
 	public function get_file_list()
 	{
 		if ( ! $this->filelist ) {
-			$this->filelist= array_map( create_function('$a', 'return $a["file_name"];'), $this->getList() );
+			$this->filelist = array_map( create_function('$a', 'return $a["file_name"];'), $this->getList() );
 		}
 		
 		return $this->filelist;
 	}
 	
-	public function unpack( $file, $location, $perms= 0777 )
+	public function unpack( $file, $location, $perms = 0777 )
 	{
 		// dUnzip2 includes folders in it's file list.
 		if ( substr($file, -1) == "/" ) {

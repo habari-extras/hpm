@@ -59,24 +59,24 @@ class dUnzip2
 	
 	// Public
 	public $fileName;
-	public $compressedList= array(); // You will problably use only this one!
-	public $centralDirList= array(); // Central dir list... It's a kind of 'extra attributes' for a set of files
-	public $endOfCentral= array();   // End of central dir, contains ZIP Comments
+	public $compressedList = array(); // You will problably use only this one!
+	public $centralDirList = array(); // Central dir list... It's a kind of 'extra attributes' for a set of files
+	public $endOfCentral = array();   // End of central dir, contains ZIP Comments
 	public $debug;
 	
 	// Private
 	private $fh;
 	private $zipSignature = "\x50\x4b\x03\x04"; // local file header signature
 	private $dirSignature = "\x50\x4b\x01\x02"; // central dir header signature
-	private $dirSignatureE= "\x50\x4b\x05\x06"; // end of central dir signature
+	private $dirSignatureE = "\x50\x4b\x05\x06"; // end of central dir signature
 	
 	// Public
 	public function __construct( $fileName )
 	{
-		$this->fileName= $fileName;
+		$this->fileName = $fileName;
 	}
 	
-	public function getList($stopOnFile=false)
+	public function getList($stopOnFile =false)
 	{
 		if(sizeof($this->compressedList)){
 			$this->debugMsg(1, "Returning already loaded file list.");
@@ -106,7 +106,7 @@ class dUnzip2
 			$kkk = 0;
 			echo "<table border='0' style='font: 11px Verdana; border: 1px solid #000'>";
 			foreach($this->compressedList as $fileName=>$item){
-				if(!$kkk && $kkk=1){
+				if(!$kkk && $kkk =1){
 					echo "<tr style='background: #ADA'>";
 					foreach($item as $fieldName=>$value)
 						echo "<td>$fieldName</td>";
@@ -128,7 +128,7 @@ class dUnzip2
 			if(sizeof($this->centralDirList)){
 				echo "<table border='0' style='font: 11px Verdana; border: 1px solid #000'>";
 				foreach($this->centralDirList as $fileName=>$item){
-					if(!$kkk && $kkk=1){
+					if(!$kkk && $kkk =1){
 						echo "<tr style='background: #AAD'>";
 						foreach($item as $fieldName=>$value)
 							echo "<td>$fieldName</td>";
@@ -172,14 +172,14 @@ class dUnzip2
 			false;
 	}
 	
-	public function getZipInfo($detail=false)
+	public function getZipInfo($detail =false)
 	{
 		return $detail?
 			$this->endOfCentral[$detail]:
 			$this->endOfCentral;
 	}
 	
-	public function unzip($compressedFileName, $targetFileName=false, $applyChmod=0777){
+	public function unzip($compressedFileName, $targetFileName =false, $applyChmod =0777){
 		if(!sizeof($this->compressedList)){
 			$this->debugMsg(1, "Trying to unzip before loading file list... Loading it!");
 			$this->getList(false, $compressedFileName);
@@ -214,7 +214,7 @@ class dUnzip2
 		return $ret;
 	}
 	
-	public function unzipAll($targetDir=false, $baseDir="", $maintainStructure=true, $applyChmod=0777){
+	public function unzipAll($targetDir =false, $baseDir ="", $maintainStructure =true, $applyChmod =0777){
 		if($targetDir === false)
 			$targetDir = dirname(__FILE__)."/";
 		
@@ -257,7 +257,7 @@ class dUnzip2
 	}
 	
 	// Private (you should NOT call these methods):
-	private function uncompress($content, $mode, $uncompressedSize, $targetFileName=false){
+	private function uncompress($content, $mode, $uncompressedSize, $targetFileName =false){
 		switch($mode){
 			case 0:
 				// Not compressed
@@ -312,7 +312,7 @@ class dUnzip2
 		}
 	}
 
-	private function _loadFileListByEOF(&$fh, $stopOnFile=false){
+	private function _loadFileListByEOF(&$fh, $stopOnFile =false){
 		// Check if there's a valid Central Dir signature.
 		// Let's consider a file comment smaller than 1024 characters...
 		// Actually, it length can be 65536.. But we're not going to support it.
@@ -422,7 +422,7 @@ class dUnzip2
 		}
 		return false;
 	}
-	private function _loadFileListBySignatures(&$fh, $stopOnFile=false){
+	private function _loadFileListBySignatures(&$fh, $stopOnFile =false){
 		fseek($fh, 0);
 		
 		$return = false;
@@ -446,7 +446,7 @@ class dUnzip2
 		
 		return $return;
 	}
-	private function _getFileHeaderInformation(&$fh, $startOffset=false){
+	private function _getFileHeaderInformation(&$fh, $startOffset =false){
 		if($startOffset !== false)
 			fseek($fh, $startOffset);
 		
