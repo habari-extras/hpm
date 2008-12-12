@@ -3,7 +3,7 @@
 <div class="container navigator">
 	<div class="pct85">
 		<span class="search pct100"><input id="search" type="search" placeholder="Type and wait to search for any entry component" autosave="habaricontent" results="100" value=""></span>
-		
+
 		<ul class="dropbutton special_search">
 			<li><a href="#plugin">Plugins</a></li>
 			<li><a href="#theme">Themes</a></li>
@@ -15,9 +15,9 @@
 			<li><a href="#pink">Pink</a></li>
 		</ul>
 	</div>
-	
+
 	<div class="pct5">&nbsp;</div>
-	
+
 	<div class="pct10 item">
 		<ul class="dropbutton <?php echo ( HabariPackages::require_updates() )?'alert':''; ?>">
 			<li><a href="<?php URL::out('admin', 'page=hpm&action=update'); ?>">Update Package List</a></li>
