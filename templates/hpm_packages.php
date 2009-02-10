@@ -1,4 +1,4 @@
-<?php if ( $packages ) : ?>
+<?php if ( is_array($packages) ) : ?>
 	<?php foreach ( $packages as $package) : ?>
 		<div class="item clear <?php echo ($package->status == 'upgrade')?' unapproved ':''; echo (!$package->is_compatible())?' spam ':''; ?>" id="package_<?php echo $package->id; ?>">
 			<div class="head clear">
@@ -8,7 +8,7 @@
 			<?php if ( !$package->is_compatible() ) : ?>
 			<div class="content"><?php echo "{$package->name} {$package->version} is not compatible with Habari " . Version::get_habariversion(); ?></div>
 			<?php endif; ?>
-			
+
 			<ul class="dropbutton">
 				<?php if ( $package->status == 'upgrade' ) : ?>
 				<li><a href=" <?php Site::out_url('admin') ?>/hpm?action=upgrade&guid=<?php echo $package->guid ?>">upgrade</a></li>
@@ -24,7 +24,7 @@
 		</div>
 	<?php endforeach; ?>
 <?php else : ?>
-		<div class="item clear" id="">
+		<div class="item clear" id="package_none">
 			No Packages available for Habari <?php echo Version::get_habariversion(); ?>. Try to find some more repository sources which may have more up-to-date packages.
 		</div>
 <?php endif; ?>

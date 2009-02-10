@@ -140,6 +140,8 @@ class HPM extends Plugin
 		Plugins::act( 'hpm_init' );
 
 		$type = isset($handler->handler_vars['type']) ? $handler->handler_vars['type'] : null;
+		$paged = isset($handler->handler_vars['paged']) ? $handler->handler_vars['paged'] : null;
+		$limit = 20;
 
 		if ( isset( $handler->handler_vars['action'] ) ) {
 			$action = $handler->handler_vars['action'];
@@ -161,16 +163,23 @@ class HPM extends Plugin
 			exit;
 		}
 
+		$offset = $paged ? $limit * $paged : 0;
+
 		if ( $type ) {
 			$theme->packages = DB::get_results(
-				'SELECT * FROM {packages} WHERE type = ? LIMIT 20',
+				"SELECT * FROM {packages} WHERE type = ? LIMIT $limit OFFSET $offset",
 				array($type),
 				'HabariPackage'
 			);
 		}
 		else {
-			$theme->packages = DB::get_results('SELECT * FROM {packages} LIMIT 20', array(), 'HabariPackage');
+			$theme->packages = DB::get_results(
+				"SELECT * FROM {packages} LIMIT $limit OFFSET $offset",
+				array(),
+				'HabariPackage'
+			);
 		}
+		$theme->type = $type;
 		$theme->display('hpm');
 		exit;
 	}
@@ -251,12 +260,21 @@ class HPM extends Plugin
 		$search = explode( ' ', $search );
 		$where = array();
 		$vals = array();
+		$limit = 20;
+		$offset = (int) $handler->handler_vars['offset'] ? $handler->handler_vars['offset'] : 0;
 
 		foreach ( $search as $term ) {
 			$where[] = "(name LIKE CONCAT('%',?,'%') OR description LIKE CONCAT('%',?,'%') OR tags LIKE CONCAT('%',?,'%') OR type LIKE CONCAT('%',?,'%'))";
 			$vals = array_pad( $vals, count($vals) + 4, $term );
 		}
-		$theme->packages = DB::get_results('SELECT * FROM ' . DB::table('packages') . " WHERE " . implode( ' AND ', $where ), $vals, 'HabariPackage');
+
+		$theme->packages = DB::get_results(
+			'SELECT * FROM {packages} WHERE ' .
+				implode( ' AND ', $where ) .
+				"LIMIT $limit OFFSET $offset",
+			$vals,
+			'HabariPackage'
+		);
 		echo json_encode( array( 'items' =>  $theme->fetch('hpm_packages') ) );
 	}
 
