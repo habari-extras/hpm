@@ -85,6 +85,12 @@ class HPM extends Plugin
 			}
 			Options::set( 'hpm__last_update', 1 );
 			Options::set( 'hpm__repos', 'http://habariproject.org/en/packages' );
+
+			# create default access tokens for: 'system', 'plugin', 'theme', 'class'
+			ACL::create_token( 'install_new_system', _t('Install System Updates', 'hpm'), 'hpm', false );
+			ACL::create_token( 'install_new_plugin', _t('Install New Plugins', 'hpm'), 'hpm', false );
+			ACL::create_token( 'install_new_theme', _t('Install New Themes', 'hpm'), 'hpm', false );
+			ACL::create_token( 'install_new_class', _t('Install New Classes', 'hpm'), 'hpm', false );
 		}
 	}
 	public function action_plugin_deactivation( $file )
@@ -95,6 +101,12 @@ class HPM extends Plugin
 
 			DB::query( 'DROP TABLE IF EXISTS {packages} ' );
 			DB::query( 'DROP TABLE IF EXISTS {package_repos} ' );
+
+			# delete default access tokens for: 'system', 'plugin', 'theme', 'class'
+			ACL::destroy_token( 'install_new_system' );
+			ACL::destroy_token( 'install_new_plugin' );
+			ACL::destroy_token( 'install_new_theme' );
+			ACL::destroy_token( 'install_new_class' );
 		}
 	}
 
@@ -124,6 +136,21 @@ class HPM extends Plugin
 		}
 	}
 
+	public function filter_admin_access_tokens( array $require_any, $page )
+	{
+		Plugins::act( 'hpm_init' );
+
+		switch ($page) {
+			case 'hpm':
+				$types = HabariPackages::list_package_types();
+				foreach ($types as $type) {
+					$require_any['install_new_' . $type] = true;
+				}
+				break;
+		}
+		return $require_any;
+	}
+
 	public function filter_adminhandler_post_loadplugins_main_menu( $menus )
 	{
 		$menus['plugins']['submenu']['plugs'] =  array( 'url' => URL::get( 'admin', 'page=plugins'), 'title' => _t('Currently available plugins', 'hpm'), 'text' => _t('Available Plugins', 'hpm'), 'selected' => false, 'hotkey' => 1 );
@@ -137,8 +164,6 @@ class HPM extends Plugin
 
 	public function action_admin_theme_get_hpm( $handler, $theme )
 	{
-		Plugins::act( 'hpm_init' );
-
 		$type = isset($handler->handler_vars['type']) ? $handler->handler_vars['type'] : null;
 		$paged = isset($handler->handler_vars['paged']) ? $handler->handler_vars['paged'] : null;
 		$limit = 20;
