@@ -153,11 +153,11 @@ class HPM extends Plugin
 
 	public function filter_adminhandler_post_loadplugins_main_menu( $menus )
 	{
-		$menus['plugins']['submenu']['plugs'] =  array( 'url' => URL::get( 'admin', 'page=plugins'), 'title' => _t('Currently available plugins', 'hpm'), 'text' => _t('Available Plugins', 'hpm'), 'selected' => false, 'hotkey' => 1 );
-		$menus['plugins']['submenu']['hpm'] =  array( 'url' => URL::get( 'admin', 'page=hpm&type=plugin'), 'title' => _t('Find new plugins', 'hpm'), 'text' => _t('Get New Plugins', 'hpm'), 'selected' => false, 'hotkey' => 2 );
+		$menus['plugins']['submenu']['plugs'] =  array( 'url' => URL::get( 'admin', 'page=plugins'), 'title' => _t('Currently available plugins', 'hpm'), 'text' => _t('Available Plugins', 'hpm'), 'selected' => false, 'hotkey' => 1, 'access'=>array('install_new_plugins', true) );
+		$menus['plugins']['submenu']['hpm'] =  array( 'url' => URL::get( 'admin', 'page=hpm&type=plugin'), 'title' => _t('Find new plugins', 'hpm'), 'text' => _t('Get New Plugins', 'hpm'), 'selected' => false, 'hotkey' => 2, 'access'=>array('install_new_plugins', true) );
 
-		$menus['themes']['submenu']['themeses'] =  array( 'url' => URL::get( 'admin', 'page=themes'), 'title' => _t('Currently available themes', 'hpm'), 'text' => _t('Available Themes', 'hpm'), 'selected' => false, 'hotkey' => 1 );
-		$menus['themes']['submenu']['hpm'] =  array( 'url' => URL::get( 'admin', 'page=hpm&type=theme'), 'title' => _t('Find new themes', 'hpm'), 'text' => _t('Get New Themes', 'hpm'), 'selected' => false, 'hotkey' => 2 );
+		$menus['themes']['submenu']['themeses'] =  array( 'url' => URL::get( 'admin', 'page=themes'), 'title' => _t('Currently available themes', 'hpm'), 'text' => _t('Available Themes', 'hpm'), 'selected' => false, 'hotkey' => 1, 'access'=>array('install_new_themes', true) );
+		$menus['themes']['submenu']['hpm'] =  array( 'url' => URL::get( 'admin', 'page=hpm&type=theme'), 'title' => _t('Find new themes', 'hpm'), 'text' => _t('Get New Themes', 'hpm'), 'selected' => false, 'hotkey' => 2, 'access'=>array('install_new_themes', true) );
 
 		return $menus;
 	}
