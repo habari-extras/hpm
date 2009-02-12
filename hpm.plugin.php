@@ -12,6 +12,7 @@ class HPM extends Plugin
 			'version' => '0.2.alpha',
 			'author' => 'Habari Community',
 			'license' => 'Apache License 2.0',
+			'description' => 'The Habari Package Manager lets you install plugins hosted in the Habari community repository directly from your site\'s admin.'
 		);
 	}
 
