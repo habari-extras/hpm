@@ -1,0 +1,8 @@
+<plugin>
+	<name>HPM</name>
+	<version>0.2.alpha</version>
+	<author>Habari Community</author>
+	<license>Apache License 2.0</license>
+	<description>The Habari Package Manager lets you install plugins hosted in the Habari community repository directly from your site\'s admin.</description>
+</plugin>
+
