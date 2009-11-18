@@ -5,17 +5,6 @@ class HPM extends Plugin
 	const VERSION = '0.2';
 	const DB_VERSION = 001;
 
-	function info()
-	{
-		return array (
-			'name' => 'HPM',
-			'version' => '0.2.alpha',
-			'author' => 'Habari Community',
-			'license' => 'Apache License 2.0',
-			'description' => 'The Habari Package Manager lets you install plugins hosted in the Habari community repository directly from your site\'s admin.'
-		);
-	}
-
 	public function action_init()
 	{
 	}
