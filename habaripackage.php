@@ -13,51 +13,24 @@ need a clean_up() routine to clean tmp files serialize certain feilds and call u
 
 */
 
-class HabariPackage extends QueryRecord
+class HabariPackage
 {
 	public $readme_doc;
-	private $archive;
+	public $name;
+	public $version;
+	public $habari_version;
+	public $type;
+	public $download_url;
+	public $permalink;
+	public $description;
+	public $install_profile;
+	publis $status;
 
-	public static function default_fields()
+	public function __construct( $addon )
 	{
-		return array(
-			'id' => 0,
-			'name' => '',
-			'guid' => '',
-			'version' => '',
-			'description' => '',
-			'author' => '',
-			'author_url' => '',
-			'habari_version' => '',
-			'archive_md5' => '',
-			'archive_url' => '',
-			'type' => '',
-			'status' => '',
-			'requires' => '',
-			'provides' => '',
-			'recomends' => '',
-			'tags' => '',
-			'install_profile' => ''
-		);
-	}
-
-	public static function get( $guid )
-	{
-		$package = DB::get_row( 'SELECT * FROM ' . DB::table('packages') . ' WHERE guid = ?',
-			array( $guid ), 'HabariPackage' );
-
-		return $package;
-	}
-
-	public function __construct( $paramarray = array() )
-	{
-		$this->fields = array_merge(
-			self::default_fields(),
-			$this->fields
-		);
-
-		parent::__construct( Utils::get_params( $paramarray ) );
-		$this->exclude_fields( 'id' );
+		foreach ($addon as $var => $value) {
+			$this->$var = $value;
+		}
 	}
 
 	public function install()
@@ -73,7 +46,6 @@ class HabariPackage extends QueryRecord
 		$this->trigger_hooks( 'install' );
 
 		$this->install_profile = serialize( $this->install_profile );
-		$this->update();
 	}
 
 	public function remove()
@@ -99,7 +71,6 @@ class HabariPackage extends QueryRecord
 		}
 		$this->install_profile = '';
 		$this->status = '';
-		$this->update();
 	}
 
 	public function upgrade()
@@ -147,7 +118,6 @@ class HabariPackage extends QueryRecord
 			$this->trigger_hooks( 'upgrade' );
 
 			$this->install_profile = serialize( $this->install_profile );
-			$this->update();
 		}
 		// revert to old version if new install failed
 		catch( Exception $e ) {
@@ -169,7 +139,7 @@ class HabariPackage extends QueryRecord
 
 	private function get_archive()
 	{
-		$this->archive = new PackageArchive( $this->archive_url );
+		$this->archive = new PackageArchive( $this->download_url );
 		$this->archive->fetch();
 
 /*
@@ -265,29 +235,6 @@ class HabariPackage extends QueryRecord
 		return HabariPackages::is_compatible( $this->habari_version );
 	}
 
-	/**
-	 * Saves a new package to the packages table
-	 */
-	public function insert()
-	{
-		return parent::insertRecord( DB::table('packages') );
-	}
-
-	/**
-	 * Updates an existing package to the packages table
-	 */
-	public function update()
-	{
-		return parent::updateRecord( DB::table('packages'), array('id'=>$this->id) );
-	}
-
-	/**
-	 * Deletes an existing package
-	 */
-	public function delete()
-	{
-		return parent::deleteRecord( DB::table('packages'), array('id'=>$this->id) );
-	}
 }
 
 ?>
